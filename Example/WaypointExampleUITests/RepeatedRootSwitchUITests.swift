@@ -6,7 +6,7 @@ final class RepeatedRootSwitchUITests: WaypointUITestCase {
     func testRepeatedSignOutDoesNotAccumulate() {
         launch()
         let signedIn = settledCounts()
-        for round in 1...3 {
+        for _ in 1...3 {
             tap("feed.photo.1")
             waitFor("detail.hero")
             tapTab("Explore")
@@ -27,9 +27,7 @@ final class RepeatedRootSwitchUITests: WaypointUITestCase {
             tap("signIn.submit")
             waitFor("feed.photo.1", timeout: 8)
             tapTab("Explore"); tapTab("Profile"); tapTab("Feed")
-            XCTContext.runActivity(named: "Round \(round)") { _ in
-                assertReturns(to: signedIn)
-            }
+            assertReturns(to: signedIn)   // after every round, not just the last
         }
     }
 }
