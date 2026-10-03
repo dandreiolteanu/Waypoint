@@ -38,7 +38,9 @@ public final class TabNavigator<Tab: Hashable> {
 
     /// The binding to give `TabView(selection:)`. The system writes the current tab again when it is tapped a second time.
     public var selection: Binding<Tab> {
-        Binding(get: { self.selectedTab }, set: { self.userSelected($0) })
+        // Weak, so a TabView that SwiftUI keeps around after a root switch doesn't keep the tabs alive.
+        let fallback = selectedTab
+        return Binding(get: { [weak self] in self?.selectedTab ?? fallback }, set: { [weak self] in self?.userSelected($0) })
     }
 
     /// Switches tabs from code. Deep links use this before navigating inside the tab.

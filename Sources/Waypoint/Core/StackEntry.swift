@@ -2,24 +2,28 @@ import SwiftUI
 
 /// One screen in a ``Navigator``: the root, a pushed screen, or the root of a presented navigator.
 ///
-/// An entry owns everything its screen needs. That means the built view and, through ``owner``, the coordinator that built it.
+/// An entry owns its coordinator through ``owner``, and its view through ``screen``.
 /// Removing the entry from navigation state is what releases them.
 @MainActor
 public final class StackEntry: Hashable, Identifiable {
     /// The route value the screen was built from, type-erased so one stack can mix routes from several coordinators.
     public let route: AnyHashable
     /// The coordinator that built the screen. It's retained here, so a coordinator lives exactly as long as one of its screens.
-    public let owner: Coordinator?
+    /// It's released when the entry is removed, so a navigator SwiftUI holds on to after a teardown no longer keeps the coordinator alive.
+    public private(set) var owner: Coordinator?
     public let transition: ScreenTransition
-    let content: AnyView
+    let screen: ScreenContent
+    /// What SwiftUI's path holds instead of the entry itself, so SwiftUI's retained copy of a popped path keeps nothing alive.
+    let token: EntryToken
     private var removalHandlers: [() -> Void] = []
     private(set) var isRemoved = false
 
     init(route: AnyHashable, content: AnyView, owner: Coordinator?, transition: ScreenTransition = .automatic) {
         self.route = route
-        self.content = content
         self.owner = owner
         self.transition = transition
+        self.screen = ScreenContent(view: content)
+        self.token = EntryToken(screen: screen, transition: transition)
         LifetimeTracker.track(self, kind: .entry)
     }
 
@@ -36,9 +40,16 @@ public final class StackEntry: Hashable, Identifiable {
 
     // MARK: - Removal
 
+    /// Runs `handler` as soon as the entry leaves navigation state.
     func onRemove(_ handler: @escaping () -> Void) {
         guard !isRemoved else { return handler() }
         removalHandlers.append(handler)
+    }
+
+    /// Runs `handler` once the entry has been removed *and* its screen has finished leaving the screen.
+    /// That's after the pop or dismissal animation, or right away if the screen wasn't visible.
+    func onClosed(_ handler: @escaping () -> Void) {
+        screen.onClosed(handler)
     }
 
     func markRemoved() {
@@ -47,8 +58,68 @@ public final class StackEntry: Hashable, Identifiable {
         let handlers = removalHandlers
         removalHandlers.removeAll()
         handlers.forEach { $0() }
+        screen.remove()
         if let owner, owner.anchor === self {
             owner.finishLifecycle()
         }
+        owner = nil
     }
+}
+
+/// The SwiftUI-facing half of an entry: the built view, plus whether it's currently on screen.
+///
+/// `NavigationStack` keeps the destination it last popped (and its path element) alive until the next navigation.
+/// So the view lives here, and it's dropped once the removed screen has disappeared. That forces SwiftUI to let go of the view model too.
+@MainActor
+@Observable
+final class ScreenContent {
+    private(set) var view: AnyView?
+    @ObservationIgnored private var isVisible = false
+    @ObservationIgnored private var isRemoved = false
+    @ObservationIgnored private(set) var isClosed = false
+    @ObservationIgnored private var closedHandlers: [() -> Void] = []
+
+    init(view: AnyView) {
+        self.view = view
+    }
+
+    func onClosed(_ handler: @escaping () -> Void) {
+        guard !isClosed else { return handler() }
+        closedHandlers.append(handler)
+    }
+
+    func didAppear() {
+        guard !isRemoved else { return }
+        isVisible = true
+    }
+
+    func didDisappear() {
+        isVisible = false
+        if isRemoved { close() }
+    }
+
+    func remove() {
+        isRemoved = true
+        if !isVisible { close() }
+    }
+
+    private func close() {
+        guard !isClosed else { return }
+        isClosed = true
+        view = nil
+        let handlers = closedHandlers
+        closedHandlers.removeAll()
+        handlers.forEach { $0() }
+    }
+}
+
+/// An element of SwiftUI's navigation path. It's compared by its screen's identity.
+/// That's safe because the token retains the screen, so the address can't be reused while SwiftUI still holds the token.
+struct EntryToken: Hashable {
+    let screen: ScreenContent
+    let transition: ScreenTransition
+
+    nonisolated static func == (lhs: EntryToken, rhs: EntryToken) -> Bool { lhs.screen === rhs.screen }
+
+    nonisolated func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(screen)) }
 }

@@ -1,0 +1,53 @@
+name: WaypointExample
+options:
+  bundleIdPrefix: dev.waypoint
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+packages:
+  Waypoint:
+    path: ..
+targets:
+  WaypointExample:
+    type: application
+    platform: iOS
+    sources: [WaypointExample]
+    dependencies:
+      - package: Waypoint
+    info:
+      path: WaypointExample/Info.plist
+      properties:
+        UILaunchScreen: {}
+        CFBundleDisplayName: Waypoint
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        CFBundleURLTypes:
+          - CFBundleURLName: dev.waypoint.example
+            CFBundleURLSchemes: [waypoint]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.waypoint.example
+  WaypointExampleUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [WaypointExampleUITests]
+    dependencies:
+      - target: WaypointExample
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: WaypointExample
+schemes:
+  WaypointExample:
+    build:
+      targets:
+        WaypointExample: all
+        WaypointExampleUITests: [test]
+    test:
+      targets:
+        - WaypointExampleUITests

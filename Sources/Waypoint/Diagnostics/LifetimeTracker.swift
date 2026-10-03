@@ -22,11 +22,16 @@ public enum LifetimeTracker {
 
     #if DEBUG
     private static var records: [Record] = []
+    /// Dead records are swept when the list doubles, which keeps `track` amortized O(1).
+    private static var sweepThreshold = 64
     #endif
 
     public static func track(_ object: AnyObject, kind: Kind) {
         #if DEBUG
-        records.removeAll { $0.object == nil }
+        if records.count >= sweepThreshold {
+            records.removeAll { $0.object == nil }
+            sweepThreshold = max(64, records.count * 2)
+        }
         records.append(Record(object: object, kind: kind, typeName: String(describing: type(of: object))))
         #endif
     }

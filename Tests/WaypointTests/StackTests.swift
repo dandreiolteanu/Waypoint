@@ -43,8 +43,8 @@ struct StackTests {
 
         // WHEN
         home.push(.detail(1))
-        _ = navigator.path.map(\.content)
-        _ = navigator.path.map(\.content)
+        _ = navigator.path.map(\.screen.view)
+        _ = navigator.path.map(\.screen.view)
 
         // THEN
         #expect(home.madeViewModels.count == 2)
@@ -64,6 +64,46 @@ struct StackTests {
         #expect(home.routes == [.home, .detail(1)])
         #expect(home.madeViewModels.liveCount == 2)
         withExtendedLifetime(navigator) {}
+    }
+
+    @Test("A popped screen that's still animating out keeps its view until it disappears")
+    func visibleScreenReleasedAfterDisappearing() {
+        // GIVEN
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        home.push(.detail(1))
+        let screen = navigator.top.screen
+        screen.didAppear()
+
+        // WHEN
+        navigator.pop()
+
+        // THEN: SwiftUI is still animating it out, so the view (and its view model) stay
+        #expect(screen.view != nil)
+        #expect(home.madeViewModels.liveCount == 2)
+
+        // WHEN
+        screen.didDisappear()
+
+        // THEN: dropped, even though SwiftUI may still retain the screen box itself
+        #expect(screen.view == nil)
+        #expect(home.madeViewModels.liveCount == 1)
+    }
+
+    @Test("SwiftUI's token path maps back to entries, and unknown tokens are ignored")
+    func tokenPath() {
+        // GIVEN
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        home.push([.detail(1), .detail(2), .detail(3)])
+        let tokens = navigator.path.map(\.token)
+        let stranger = StackEntry(route: AnyHashable(0), content: AnyView(EmptyView()), owner: nil).token
+
+        // WHEN
+        navigator.setPath(tokens: [tokens[0], stranger])
+
+        // THEN
+        #expect(home.routes == [.home, .detail(1)])
     }
 
     @Test("A shorter path from SwiftUI's binding (swipe-back) is torn down like a pop")

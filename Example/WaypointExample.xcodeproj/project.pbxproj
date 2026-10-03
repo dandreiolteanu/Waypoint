@@ -1,0 +1,573 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		13F82FFF4FA26A3CB44D8DD1 /* NavigationLifetimeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233337B3C57D2FD7655BBB76 /* NavigationLifetimeUITests.swift */; };
+		19AA2768FB57A4D488BE162F /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D3E8F24B98594423AFEBE0 /* DeepLink.swift */; };
+		3F1D3D4E14918956D9E32004 /* ProfileCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1CD8D95E95548ACE3D444A /* ProfileCoordinator.swift */; };
+		4267620926974047ABC6BFFF /* LabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F59202D9E2F22BC0CC16CA /* LabView.swift */; };
+		4E34AF6DB6BA5812DC55B181 /* AuthViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58766621A130464BBA720877 /* AuthViews.swift */; };
+		6125582B7C2320DA772845A9 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9D7926B6E31E52561A623AB /* SessionStore.swift */; };
+		85CAC28C05DA8B12BFCE01DF /* Waypoint in Frameworks */ = {isa = PBXBuildFile; productRef = 9D75F4EECA24DCAE93D1F462 /* Waypoint */; };
+		8C3444D83FC448C2B1A6F34C /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566EFA2BCE98E2CE00C3BD4D /* Components.swift */; };
+		8D2C4EF1DF6B0FC9D46C04E4 /* AuthCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565466038E9F5630127229A7 /* AuthCoordinator.swift */; };
+		932A9E2DA912C60836E1AEBE /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76D099A23830021FBA62FE5 /* Models.swift */; };
+		996EA810767EB431131295FE /* FeedCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452EB49DD0877FD8D8D86265 /* FeedCoordinator.swift */; };
+		A3E89FE958FB942A1D50C79F /* Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA07852B2A753045A1C9BD6F /* Support.swift */; };
+		A6F7911E4E1A428F98D9FEB5 /* FeedViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72BB452828329A9466789AEA /* FeedViews.swift */; };
+		C127BB82826AE6E2D0480ECE /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92429B2B7709BE73EAA8B983 /* AppCoordinator.swift */; };
+		C34FAC3EFB4CDCE6229D3350 /* OnboardingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50157527E38C5D41D5317739 /* OnboardingCoordinator.swift */; };
+		D014E54217078862C38D1E3A /* ProfileViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 448F267E4D43F4E02ABB146B /* ProfileViews.swift */; };
+		D853017071C5A8DA27D497C6 /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 064AE1735518D14BAD814403 /* MainCoordinator.swift */; };
+		E38E81EF3E970229EA332FC0 /* PresentationDemos.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6EE29EE25E5814693467EDA /* PresentationDemos.swift */; };
+		EB97922B95094F1DF9706657 /* WaypointExampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC58D41BE7BF8E93E248E8A2 /* WaypointExampleApp.swift */; };
+		F72C5BB831D6AC66E3DF70F3 /* ExploreCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D779832B91CB9D978D3709 /* ExploreCoordinator.swift */; };
+		FC9F97A2EBDA091BA6CF095C /* LifetimeOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8996ED05C390D1237D7CF3A /* LifetimeOverlay.swift */; };
+		FCF1AD660CBABCEBA8D7C8B0 /* SettingsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6775E62D630FB07F175DD791 /* SettingsCoordinator.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7366FA4E282ADE24D45597CB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 586B35FE88F3C9CE8AAB2150 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B7C273751AC70A3B91730850;
+			remoteInfo = WaypointExample;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		064AE1735518D14BAD814403 /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
+		0E1CD8D95E95548ACE3D444A /* ProfileCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCoordinator.swift; sourceTree = "<group>"; };
+		233337B3C57D2FD7655BBB76 /* NavigationLifetimeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationLifetimeUITests.swift; sourceTree = "<group>"; };
+		448F267E4D43F4E02ABB146B /* ProfileViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViews.swift; sourceTree = "<group>"; };
+		452EB49DD0877FD8D8D86265 /* FeedCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCoordinator.swift; sourceTree = "<group>"; };
+		50157527E38C5D41D5317739 /* OnboardingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCoordinator.swift; sourceTree = "<group>"; };
+		565466038E9F5630127229A7 /* AuthCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthCoordinator.swift; sourceTree = "<group>"; };
+		566EFA2BCE98E2CE00C3BD4D /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		58766621A130464BBA720877 /* AuthViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViews.swift; sourceTree = "<group>"; };
+		6775E62D630FB07F175DD791 /* SettingsCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCoordinator.swift; sourceTree = "<group>"; };
+		72BB452828329A9466789AEA /* FeedViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedViews.swift; sourceTree = "<group>"; };
+		82A0F19C6EE784FA79C2B18E /* Waypoint */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Waypoint; path = ..; sourceTree = SOURCE_ROOT; };
+		92429B2B7709BE73EAA8B983 /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
+		A88757896DA1488CD76EAA6D /* WaypointExampleUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WaypointExampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA07852B2A753045A1C9BD6F /* Support.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support.swift; sourceTree = "<group>"; };
+		B76D099A23830021FBA62FE5 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		B8EF712FCD9A7D87BA9DC6E4 /* WaypointExample.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WaypointExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C3D3E8F24B98594423AFEBE0 /* DeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLink.swift; sourceTree = "<group>"; };
+		D4F59202D9E2F22BC0CC16CA /* LabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabView.swift; sourceTree = "<group>"; };
+		D9D7926B6E31E52561A623AB /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
+		F5D779832B91CB9D978D3709 /* ExploreCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreCoordinator.swift; sourceTree = "<group>"; };
+		F6EE29EE25E5814693467EDA /* PresentationDemos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationDemos.swift; sourceTree = "<group>"; };
+		F8996ED05C390D1237D7CF3A /* LifetimeOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifetimeOverlay.swift; sourceTree = "<group>"; };
+		FC35818290D876BAD1E1659F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		FC58D41BE7BF8E93E248E8A2 /* WaypointExampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaypointExampleApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		173B9FEA59250572BF002FD7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				85CAC28C05DA8B12BFCE01DF /* Waypoint in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		206CE8D6B848620D8A840C77 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				565466038E9F5630127229A7 /* AuthCoordinator.swift */,
+				58766621A130464BBA720877 /* AuthViews.swift */,
+				50157527E38C5D41D5317739 /* OnboardingCoordinator.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		223497A24A6D491BF8F4EA34 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				566EFA2BCE98E2CE00C3BD4D /* Components.swift */,
+				B76D099A23830021FBA62FE5 /* Models.swift */,
+				D9D7926B6E31E52561A623AB /* SessionStore.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		38FF248C01EF1829EB2E1E06 = {
+			isa = PBXGroup;
+			children = (
+				B83471F12482D1DDE7F907EF /* Packages */,
+				FF4A551425AC6DC93CAE496C /* WaypointExample */,
+				AC3625E02C4E7D67B5FB526D /* WaypointExampleUITests */,
+				CB4B82ADC17125C1BECA7EE2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		61EE058FAE1883E6DE024836 /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				F8996ED05C390D1237D7CF3A /* LifetimeOverlay.swift */,
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
+		6B0E271570F41E77AAAC5023 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				0E1CD8D95E95548ACE3D444A /* ProfileCoordinator.swift */,
+				448F267E4D43F4E02ABB146B /* ProfileViews.swift */,
+				6775E62D630FB07F175DD791 /* SettingsCoordinator.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		9CEAE659E12F46E5FA1D5036 /* Main */ = {
+			isa = PBXGroup;
+			children = (
+				064AE1735518D14BAD814403 /* MainCoordinator.swift */,
+			);
+			path = Main;
+			sourceTree = "<group>";
+		};
+		AC3625E02C4E7D67B5FB526D /* WaypointExampleUITests */ = {
+			isa = PBXGroup;
+			children = (
+				233337B3C57D2FD7655BBB76 /* NavigationLifetimeUITests.swift */,
+				AA07852B2A753045A1C9BD6F /* Support.swift */,
+			);
+			path = WaypointExampleUITests;
+			sourceTree = "<group>";
+		};
+		B670BD1F18E9F477D38F4AEE /* Feed */ = {
+			isa = PBXGroup;
+			children = (
+				452EB49DD0877FD8D8D86265 /* FeedCoordinator.swift */,
+				72BB452828329A9466789AEA /* FeedViews.swift */,
+			);
+			path = Feed;
+			sourceTree = "<group>";
+		};
+		B83471F12482D1DDE7F907EF /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				82A0F19C6EE784FA79C2B18E /* Waypoint */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		C1944A336BC6EAF259B86B62 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				92429B2B7709BE73EAA8B983 /* AppCoordinator.swift */,
+				C3D3E8F24B98594423AFEBE0 /* DeepLink.swift */,
+				FC58D41BE7BF8E93E248E8A2 /* WaypointExampleApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		CB4B82ADC17125C1BECA7EE2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B8EF712FCD9A7D87BA9DC6E4 /* WaypointExample.app */,
+				A88757896DA1488CD76EAA6D /* WaypointExampleUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E9EC144883E10AD596C5D5DF /* Explore */ = {
+			isa = PBXGroup;
+			children = (
+				F5D779832B91CB9D978D3709 /* ExploreCoordinator.swift */,
+				D4F59202D9E2F22BC0CC16CA /* LabView.swift */,
+				F6EE29EE25E5814693467EDA /* PresentationDemos.swift */,
+			);
+			path = Explore;
+			sourceTree = "<group>";
+		};
+		FF4A551425AC6DC93CAE496C /* WaypointExample */ = {
+			isa = PBXGroup;
+			children = (
+				FC35818290D876BAD1E1659F /* Info.plist */,
+				C1944A336BC6EAF259B86B62 /* App */,
+				206CE8D6B848620D8A840C77 /* Auth */,
+				61EE058FAE1883E6DE024836 /* Debug */,
+				E9EC144883E10AD596C5D5DF /* Explore */,
+				B670BD1F18E9F477D38F4AEE /* Feed */,
+				9CEAE659E12F46E5FA1D5036 /* Main */,
+				6B0E271570F41E77AAAC5023 /* Profile */,
+				223497A24A6D491BF8F4EA34 /* Shared */,
+			);
+			path = WaypointExample;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		81ECE226128A17CAA9EBF109 /* WaypointExampleUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BC58E84C26E0027B6FB4A01B /* Build configuration list for PBXNativeTarget "WaypointExampleUITests" */;
+			buildPhases = (
+				04F0764058C9E19949B10F2B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F5CD823305E4FE3ADB3D98E7 /* PBXTargetDependency */,
+			);
+			name = WaypointExampleUITests;
+			packageProductDependencies = (
+			);
+			productName = WaypointExampleUITests;
+			productReference = A88757896DA1488CD76EAA6D /* WaypointExampleUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		B7C273751AC70A3B91730850 /* WaypointExample */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 53CFF7BD636C313A77ABF532 /* Build configuration list for PBXNativeTarget "WaypointExample" */;
+			buildPhases = (
+				EB014DC8C6039CF5BC6010ED /* Sources */,
+				173B9FEA59250572BF002FD7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WaypointExample;
+			packageProductDependencies = (
+				9D75F4EECA24DCAE93D1F462 /* Waypoint */,
+			);
+			productName = WaypointExample;
+			productReference = B8EF712FCD9A7D87BA9DC6E4 /* WaypointExample.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		586B35FE88F3C9CE8AAB2150 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					81ECE226128A17CAA9EBF109 = {
+						TestTargetID = B7C273751AC70A3B91730850;
+					};
+				};
+			};
+			buildConfigurationList = AFA9E5C41F9515C61D619A3D /* Build configuration list for PBXProject "WaypointExample" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 38FF248C01EF1829EB2E1E06;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				769698122A93A9849456FEA8 /* XCLocalSwiftPackageReference ".." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = CB4B82ADC17125C1BECA7EE2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B7C273751AC70A3B91730850 /* WaypointExample */,
+				81ECE226128A17CAA9EBF109 /* WaypointExampleUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		04F0764058C9E19949B10F2B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				13F82FFF4FA26A3CB44D8DD1 /* NavigationLifetimeUITests.swift in Sources */,
+				A3E89FE958FB942A1D50C79F /* Support.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EB014DC8C6039CF5BC6010ED /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C127BB82826AE6E2D0480ECE /* AppCoordinator.swift in Sources */,
+				8D2C4EF1DF6B0FC9D46C04E4 /* AuthCoordinator.swift in Sources */,
+				4E34AF6DB6BA5812DC55B181 /* AuthViews.swift in Sources */,
+				8C3444D83FC448C2B1A6F34C /* Components.swift in Sources */,
+				19AA2768FB57A4D488BE162F /* DeepLink.swift in Sources */,
+				F72C5BB831D6AC66E3DF70F3 /* ExploreCoordinator.swift in Sources */,
+				996EA810767EB431131295FE /* FeedCoordinator.swift in Sources */,
+				A6F7911E4E1A428F98D9FEB5 /* FeedViews.swift in Sources */,
+				4267620926974047ABC6BFFF /* LabView.swift in Sources */,
+				FC9F97A2EBDA091BA6CF095C /* LifetimeOverlay.swift in Sources */,
+				D853017071C5A8DA27D497C6 /* MainCoordinator.swift in Sources */,
+				932A9E2DA912C60836E1AEBE /* Models.swift in Sources */,
+				C34FAC3EFB4CDCE6229D3350 /* OnboardingCoordinator.swift in Sources */,
+				E38E81EF3E970229EA332FC0 /* PresentationDemos.swift in Sources */,
+				3F1D3D4E14918956D9E32004 /* ProfileCoordinator.swift in Sources */,
+				D014E54217078862C38D1E3A /* ProfileViews.swift in Sources */,
+				6125582B7C2320DA772845A9 /* SessionStore.swift in Sources */,
+				FCF1AD660CBABCEBA8D7C8B0 /* SettingsCoordinator.swift in Sources */,
+				EB97922B95094F1DF9706657 /* WaypointExampleApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F5CD823305E4FE3ADB3D98E7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B7C273751AC70A3B91730850 /* WaypointExample */;
+			targetProxy = 7366FA4E282ADE24D45597CB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		08CA8883CA76849E19EE5CEA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		23A47E68FF5A47ADC9365525 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.waypoint.WaypointExampleUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = WaypointExample;
+			};
+			name = Release;
+		};
+		33D7FC10A9E253F6ED1A51E8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = WaypointExample/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.waypoint.example;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		574175D0F6FA444FC77316CC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = WaypointExample/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.waypoint.example;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5AA9ACE52D65E85459195FEE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.waypoint.WaypointExampleUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = WaypointExample;
+			};
+			name = Debug;
+		};
+		DFBA2BDF0DE532A747B40505 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		53CFF7BD636C313A77ABF532 /* Build configuration list for PBXNativeTarget "WaypointExample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				574175D0F6FA444FC77316CC /* Debug */,
+				33D7FC10A9E253F6ED1A51E8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AFA9E5C41F9515C61D619A3D /* Build configuration list for PBXProject "WaypointExample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				08CA8883CA76849E19EE5CEA /* Debug */,
+				DFBA2BDF0DE532A747B40505 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BC58E84C26E0027B6FB4A01B /* Build configuration list for PBXNativeTarget "WaypointExampleUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5AA9ACE52D65E85459195FEE /* Debug */,
+				23A47E68FF5A47ADC9365525 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		769698122A93A9849456FEA8 /* XCLocalSwiftPackageReference ".." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9D75F4EECA24DCAE93D1F462 /* Waypoint */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Waypoint;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 586B35FE88F3C9CE8AAB2150 /* Project object */;
+}

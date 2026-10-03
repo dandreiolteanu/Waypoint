@@ -210,6 +210,37 @@ struct ResultTests {
         #expect(home.routes == [.home])
     }
 
+    @Test("A visible screen's await resumes only after its pop animation finishes")
+    func resumesAfterDisappearing() async throws {
+        // GIVEN
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        var resumed = false
+        let task = Task {
+            let value = await home.push { .pick($0) }
+            resumed = true
+            return value
+        }
+        await settle()
+        let entry = navigator.top
+        entry.screen.didAppear()
+        let callback = try #require(pickCallback(in: entry))
+
+        // WHEN: the screen calls back, and is popped but still animating out
+        callback(3)
+        await settle()
+
+        // THEN
+        #expect(navigator.path.isEmpty)
+        #expect(!resumed)
+
+        // WHEN: the pop animation ends
+        entry.screen.didDisappear()
+
+        // THEN
+        #expect(await task.value == 3)
+    }
+
     @Test("Callbacks with different identities are different routes")
     func callbackIdentity() {
         let first = Callback<Int> { _ in }

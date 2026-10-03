@@ -75,27 +75,28 @@ extension Coordinator {
         }
     }
 
-    /// Runs `open`, which puts a screen on screen and returns its entry plus the navigator it lives in.
-    /// Then waits for the screen's callback, or for the entry's removal.
+    /// Runs `open`, which puts a screen up and returns its entry plus the navigator it lives in.
+    /// The await resumes once that screen has fully left the screen (after its pop or dismissal animation),
+    /// so whatever the caller does next (present, push, switch root) never collides with a transition still running.
     func awaitResult<Value: Sendable>(
         _ open: (Callback<Value>) -> (entry: StackEntry, navigator: Navigator)?
     ) async -> Value? {
         await withCheckedContinuation { continuation in
             // Only the screen's route and entry keep `pending` alive, never this suspended frame.
-            // So if they're freed without being removed (a whole tree dropped), `pending`'s deinit still resumes the await.
+            // So if they're freed without being closed (a whole tree dropped), `pending`'s deinit still resumes the await.
             let pending = PendingResult(continuation)
             let location = EntryLocation()
             let callback = Callback<Value> { value in
-                guard pending.resolve(value) else { return }
+                guard let entry = location.entry, !entry.isRemoved, pending.store(value) else { return }
                 location.close()
             }
             guard let (entry, navigator) = open(callback) else {
-                pending.resolve(nil)
+                pending.resume()
                 return
             }
             location.entry = entry
             location.navigator = navigator
-            entry.onRemove { pending.resolve(nil) }
+            entry.onClosed { pending.resume() }
         }
     }
 }
@@ -112,27 +113,38 @@ private final class EntryLocation {
     }
 }
 
-/// Holds an await's continuation and resumes it exactly once. Resolving with a value, resolving with `nil`, and deinit can race; only the first wins.
+/// Holds an await's continuation and the value it will return, and resumes it exactly once.
+/// It resumes on ``resume()``, or on deinit if nothing resumed it first.
 final class PendingResult<Value: Sendable>: @unchecked Sendable {
     private let lock = NSLock()
     private var continuation: CheckedContinuation<Value?, Never>?
+    private var value: Value?
+    private var hasValue = false
 
     init(_ continuation: CheckedContinuation<Value?, Never>) {
         self.continuation = continuation
     }
 
-    /// Returns `true` if this call resumed the await, and `false` if it had already been resumed.
-    @discardableResult
-    func resolve(_ value: Value?) -> Bool {
-        let continuation = lock.withLock {
+    /// Records the value to return. Only the first value is kept, and this returns `false` for any later one.
+    func store(_ value: Value) -> Bool {
+        lock.withLock {
+            guard !hasValue, continuation != nil else { return false }
+            self.value = value
+            hasValue = true
+            return true
+        }
+    }
+
+    /// Resumes the await with the stored value, or with `nil` if nothing was stored.
+    func resume() {
+        let (continuation, value) = lock.withLock {
             defer { self.continuation = nil }
-            return self.continuation
+            return (self.continuation, self.value)
         }
         continuation?.resume(returning: value)
-        return continuation != nil
     }
 
     deinit {
-        continuation?.resume(returning: nil)
+        continuation?.resume(returning: value)
     }
 }

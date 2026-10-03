@@ -11,6 +11,8 @@ public final class Navigator {
     public private(set) var root: StackEntry
     public private(set) var path: [StackEntry] = []
     public private(set) var presentation: Presentation?
+    /// The alert or confirmation dialog on screen, if any. See ``Coordinator/alert(_:message:style:actions:)``.
+    public private(set) var alertRequest: AlertRequest?
     /// The navigator that presented this one, if any.
     @ObservationIgnored public private(set) weak var presenter: Navigator?
     public let embedsInNavigationStack: Bool
@@ -50,6 +52,13 @@ public final class Navigator {
     /// The deepest navigator that is currently presented, or `self` when nothing is presented.
     public var topmost: Navigator { presentation?.navigator.topmost ?? self }
 
+    /// The presentation showing this navigator, or `nil` when it isn't presented.
+    /// Use it to change the sheet's detent, or to lock swipe-to-dismiss, from inside.
+    public var containingPresentation: Presentation? {
+        guard let presentation = presenter?.presentation, presentation.navigator === self else { return nil }
+        return presentation
+    }
+
     func push(_ entry: StackEntry) {
         push(contentsOf: [entry])
     }
@@ -80,10 +89,22 @@ public final class Navigator {
     /// SwiftUI's path binding funnels through here too, so swipe-back and the long-press back menu are handled the same way.
     func setPath(_ newPath: [StackEntry]) {
         guard newPath != path else { return }
-        let kept = Set(newPath.map(ObjectIdentifier.init))
-        let removed = path.filter { !kept.contains(ObjectIdentifier($0)) }
+        let removed: [StackEntry]
+        if newPath.count < path.count, zip(newPath, path).allSatisfy(===) {
+            // A pop, which is what every swipe-back and back button produces.
+            removed = Array(path[newPath.count...])
+        } else {
+            let kept = Set(newPath.map(ObjectIdentifier.init))
+            removed = path.filter { !kept.contains(ObjectIdentifier($0)) }
+        }
         path = newPath
         removed.reversed().forEach { $0.markRemoved() }
+    }
+
+    /// SwiftUI's side of `setPath`. The tokens map back to this stack's entries. Tokens of entries that are no longer here are ignored.
+    func setPath(tokens: [EntryToken]) {
+        let entriesByScreen = Dictionary(uniqueKeysWithValues: path.map { (ObjectIdentifier($0.screen), $0) })
+        setPath(tokens.compactMap { entriesByScreen[ObjectIdentifier($0.screen)] })
     }
 
     /// Removes `entry`, plus everything pushed above it. If `entry` is this navigator's root, the navigator is dismissed instead.
@@ -162,6 +183,26 @@ public final class Navigator {
         presentation = queued
     }
 
+    // MARK: - Alerts
+
+    /// Shows `request`. An alert that is already up resolves with `nil` and is replaced.
+    func show(_ request: AlertRequest) {
+        guard !isTornDown else { return request.finish(choosing: nil) }
+        alertRequest?.finish(choosing: nil)
+        alertRequest = request
+    }
+
+    func finishAlert(_ request: AlertRequest, choosing index: Int?) {
+        if alertRequest === request { alertRequest = nil }
+        if let index {
+            request.finish(choosing: index)
+        } else {
+            // SwiftUI may write `isPresented = false` before it runs the tapped button's action.
+            // Resolving "no choice" a turn later lets the button win.
+            Task { @MainActor in request.finish(choosing: nil) }
+        }
+    }
+
     // MARK: - Teardown
 
     /// Marks every entry removed, top first. That resolves pending results with `nil` and finishes coordinators.
@@ -169,6 +210,8 @@ public final class Navigator {
     public func tearDown() {
         guard !isTornDown else { return }
         isTornDown = true
+        alertRequest?.finish(choosing: nil)
+        alertRequest = nil
         presentation?.navigator.tearDown()
         queuedPresentation?.navigator.tearDown()
         queuedPresentation = nil

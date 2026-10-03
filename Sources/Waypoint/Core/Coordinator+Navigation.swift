@@ -78,6 +78,11 @@ extension Coordinator {
         navigator?.pop(to: anchor)
     }
 
+    /// The modal presentation this coordinator's screens are in, if any. Write to it to change the detent, or to block swipe-to-dismiss.
+    public var presentation: Presentation? {
+        navigator?.containingPresentation
+    }
+
     /// Dismisses the modal presentation this coordinator's screens are in.
     public func dismiss() {
         navigator?.dismiss()
