@@ -7,10 +7,15 @@ import Foundation
 /// and its UI tests assert on them. In release builds tracking is compiled out and every query returns zero.
 @MainActor
 public enum LifetimeTracker {
+    /// The categories counted separately.
     public enum Kind: String, CaseIterable, Sendable {
+        /// Waypoint coordinators. Tracked automatically.
         case coordinator
+        /// Waypoint navigators. Tracked automatically.
         case navigator
+        /// Screens in navigation state. Tracked automatically.
         case entry
+        /// Your view models, or anything else you register with ``LifetimeTracker/track(_:kind:)``.
         case viewModel
     }
 
@@ -26,6 +31,11 @@ public enum LifetimeTracker {
     private static var sweepThreshold = 64
     #endif
 
+    /// Starts counting `object` until it's freed. Cheap, and does nothing in release builds.
+    ///
+    /// ```swift
+    /// init(...) { LifetimeTracker.track(self, kind: .viewModel) }
+    /// ```
     public static func track(_ object: AnyObject, kind: Kind) {
         #if DEBUG
         if records.count >= sweepThreshold {

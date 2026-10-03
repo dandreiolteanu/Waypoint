@@ -1,26 +1,49 @@
 import SwiftUI
 
-/// Renders a ``Navigator``: its `NavigationStack`, the pushed screens, and any modal presentation, which is rendered recursively.
+/// Shows a ``Navigator``: its `NavigationStack`, the pushed screens, and its sheets and covers (recursively).
 ///
-/// Hold the navigator in something long-lived, such as a coordinator or a `@State`. Never create it inside `body`.
+/// The simplest setup lets the host own the navigator:
 ///
 /// ```swift
-/// NavigationHost(appCoordinator.libraryNavigator)
+/// @main struct LibraryApp: App {
+///     var body: some Scene {
+///         WindowGroup { NavigationHost(root: LibraryCoordinator()) }
+///     }
+/// }
 /// ```
 ///
-/// The host and everything it puts into SwiftUI hold the navigator **weakly**. SwiftUI sometimes keeps a removed subtree alive,
-/// a `TabView` after a root switch for example. When it does, what it keeps is an empty shell, not your coordinators and view models.
+/// When something else needs the navigator (an app coordinator switching roots, a ``TabNavigator``), create it there
+/// and pass it in: `NavigationHost(navigator)`.
+///
+/// The host, and everything it hands to SwiftUI, holds a passed-in navigator **weakly**. SwiftUI sometimes keeps a removed
+/// view tree around for a while (a `TabView` after a root switch, for one); when it does, it keeps an empty shell, never
+/// your coordinators and view models.
 public struct NavigationHost: View {
     private weak var navigator: Navigator?
-
+    private let makeNavigator: (@MainActor () -> Navigator)?
+    @State private var ownedNavigator = OwnedNavigator()
     @Namespace private var namespace
 
+    /// Shows `navigator`, which you keep alive elsewhere (an app coordinator, a ``TabNavigator``).
     public init(_ navigator: Navigator) {
         self.navigator = navigator
+        self.makeNavigator = nil
     }
 
+    /// Creates a navigator rooted at the coordinator, once, and keeps it for as long as this view exists.
+    /// `root` is evaluated only the first time, so re-rendering the parent doesn't create a new coordinator.
+    ///
+    /// Use it for a root that lives as long as the app (or the scene). The host never tears the tree down, so the root
+    /// coordinator's ``Coordinator/didFinish()`` doesn't run. For roots you swap (sign-in and sign-out), keep the navigator
+    /// in an app coordinator and call ``Navigator/tearDown()`` yourself (see <doc:RootSwitching>).
+    public init<C: Routing>(root: @autoclosure @escaping @MainActor () -> C) {
+        self.navigator = nil
+        self.makeNavigator = { Navigator(root: root()) }
+    }
+
+    /// The stack, its destinations, and its presentations.
     public var body: some View {
-        if let navigator {
+        if let navigator = navigator ?? makeNavigator.map({ ownedNavigator.resolve($0) }) {
             stack(navigator)
                 .environment(\.transitionNamespace, namespace)
                 .modifier(PresentationModifier(navigator: navigator, namespace: namespace))
@@ -44,6 +67,19 @@ public struct NavigationHost: View {
         } else {
             ScreenHost(screen: navigator.root.screen)
         }
+    }
+}
+
+/// Lazily creates and keeps the navigator for ``NavigationHost/init(root:)``.
+@MainActor
+private final class OwnedNavigator {
+    private var navigator: Navigator?
+
+    func resolve(_ make: () -> Navigator) -> Navigator {
+        if let navigator { return navigator }
+        let made = make()
+        navigator = made
+        return made
     }
 }
 
@@ -80,14 +116,17 @@ private struct PresentationModifier: ViewModifier {
     }
 
     private func binding(for kind: PresentationStyle.Kind) -> Binding<PresentationItem?> {
-        Binding(
+        // The presentation this binding was rendered with. A late write from SwiftUI about an older one must not dismiss a newer one.
+        weak let rendered = navigator?.presentation
+        return Binding(
             get: { [weak navigator] in
                 guard let presentation = navigator?.presentation, presentation.style.resolvedKind == kind else { return nil }
                 return PresentationItem(presentation)
             },
             set: { [weak navigator] newValue in
-                // SwiftUI only ever writes nil here, when the user swipes the sheet away.
-                guard newValue == nil, let navigator, let current = navigator.presentation, current.style.resolvedKind == kind else { return }
+                // SwiftUI only ever writes nil here, when the user swipes the sheet away (or a SwiftUI `dismiss` runs).
+                guard newValue == nil, let navigator, let current = navigator.presentation, current === rendered,
+                      current.style.resolvedKind == kind else { return }
                 navigator.presentationDismissedBySystem(current)
             }
         )
@@ -118,7 +157,7 @@ private struct PresentedContent: View {
     var body: some View {
         if let presentation = item.presentation {
             NavigationHost(presentation.navigator)
-                .presentationDetents(presentation.style.detents, selection: Binding(
+                .presentationDetents(Set(presentation.style.detents), selection: Binding(
                     get: { [weak presentation] in presentation?.selectedDetent ?? .large },
                     set: { [weak presentation] in presentation?.selectedDetent = $0 }
                 ))
@@ -128,7 +167,7 @@ private struct PresentedContent: View {
                 .interactiveDismissDisabled(presentation.isInteractiveDismissDisabled)
                 // The zoom has to wrap the whole presented content, NavigationStack included, or the system ignores it.
                 .zoomTransition(sourceID: presentation.transition.zoomSourceID, in: namespace)
-                .onAppear { [weak presentation] in presentation?.hasAppeared = true }
+                .onAppear { [weak presentation] in presentation?.didAppear() }
         }
     }
 }

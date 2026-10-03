@@ -77,7 +77,7 @@ struct ResultTests {
         let navigator = Navigator(root: home)
         weak var weakChild: ChildFlowCoordinator?
         let task = Task {
-            await home.present(as: .fullScreenCover) { callback in
+            await home.presentFlow(as: .fullScreenCover) { callback in
                 let child = ChildFlowCoordinator(onComplete: callback)
                 weakChild = child
                 return child
@@ -105,7 +105,7 @@ struct ResultTests {
         home.push(.detail(1))
         weak var weakChild: ChildFlowCoordinator?
         let task = Task {
-            await home.push(child: { callback in
+            await home.pushFlow({ callback in
                 let child = ChildFlowCoordinator(onComplete: callback)
                 weakChild = child
                 return child

@@ -1,17 +1,17 @@
 import SwiftUI
 
-/// One screen in a ``Navigator``: the root, a pushed screen, or the root of a presented navigator.
+/// One screen in a navigator: the root, a pushed screen, or the root of a presented navigator.
 ///
 /// An entry owns its coordinator through ``owner``, and its view through ``screen``.
 /// Removing the entry from navigation state is what releases them.
 @MainActor
-public final class StackEntry: Hashable, Identifiable {
+final class StackEntry: Hashable, Identifiable {
     /// The route value the screen was built from, type-erased so one stack can mix routes from several coordinators.
-    public let route: AnyHashable
+    let route: AnyHashable
     /// The coordinator that built the screen. It's retained here, so a coordinator lives exactly as long as one of its screens.
     /// It's released when the entry is removed, so a navigator SwiftUI holds on to after a teardown no longer keeps the coordinator alive.
-    public private(set) var owner: Coordinator?
-    public let transition: ScreenTransition
+    private(set) var owner: Coordinator?
+    let transition: ScreenTransition
     let screen: ScreenContent
     /// What SwiftUI's path holds instead of the entry itself, so SwiftUI's retained copy of a popped path keeps nothing alive.
     let token: EntryToken
@@ -19,25 +19,25 @@ public final class StackEntry: Hashable, Identifiable {
     private let closing = ClosingWatch()
     private(set) var isRemoved = false
 
-    init(route: AnyHashable, content: AnyView, owner: Coordinator?, transition: ScreenTransition = .automatic) {
+    init(route: AnyHashable, content: AnyView, owner: Coordinator?, transition: ScreenTransition = .automatic, isTracked: Bool = true) {
         self.route = route
         self.owner = owner
         self.transition = transition
         self.screen = ScreenContent(view: content)
         self.token = EntryToken(screen: screen, transition: transition)
-        LifetimeTracker.track(self, kind: .entry)
+        if isTracked { LifetimeTracker.track(self, kind: .entry) }
     }
 
     /// The route as a concrete type, or `nil` when the screen came from a different route type.
-    public func route<Route: Hashable>(as type: Route.Type) -> Route? {
+    func route<Route: Hashable>(as type: Route.Type) -> Route? {
         route.base as? Route
     }
 
-    nonisolated public var id: ObjectIdentifier { ObjectIdentifier(self) }
+    nonisolated var id: ObjectIdentifier { ObjectIdentifier(self) }
 
-    nonisolated public static func == (lhs: StackEntry, rhs: StackEntry) -> Bool { lhs === rhs }
+    nonisolated static func == (lhs: StackEntry, rhs: StackEntry) -> Bool { lhs === rhs }
 
-    nonisolated public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+    nonisolated func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 
     // MARK: - Removal
 
@@ -135,8 +135,23 @@ final class ScreenContent {
 
     func remove() {
         isRemoved = true
-        if !isVisible { close() }
+        if isVisible {
+            closeEventually()
+        } else {
+            close()
+        }
     }
+
+    /// The fallback for a removed screen SwiftUI never reports as gone (it keeps some removed trees for a while).
+    /// Without it, an await on the screen could wait indefinitely. Real pop and dismiss animations end well within this.
+    private func closeEventually() {
+        Task { [weak self] in
+            try? await Task.sleep(for: Self.closeTimeout)
+            self?.close()
+        }
+    }
+
+    static var closeTimeout: Duration = .seconds(2)
 
     private func close() {
         guard !isClosed else { return }

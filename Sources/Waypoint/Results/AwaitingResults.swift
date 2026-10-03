@@ -1,19 +1,22 @@
 import Foundation
 
-// Screens and flows that hand a value back to whoever opened them.
+// Screens and flows that hand a value back to whoever opened them. See the "Passing Data" article.
 //
-// The opener awaits the value. The screen gets a `Callback` to call. When it does, the screen is closed and the await
+// The opener awaits the value; the screen (or flow) gets a `Callback` to call. Calling it closes the screen and the await
 // returns the value. If the screen goes away any other way (swipe-back, swipe-down, a parent dismissing, the tree being
-// torn down), the await returns `nil`. Each await resumes exactly once.
-//
-//     func editName() async {
-//         guard let name = await push({ .editName(current: user.name, onSave: $0) }) else { return }
-//         user.name = name
-//     }
+// torn down) the await returns `nil`. Either way it resumes exactly once, after the screen has fully left the screen.
 
 extension Routing {
-    /// Pushes the route built by `makeRoute` and waits for the screen to call its callback.
-    /// Returns `nil` if the screen is popped first.
+    /// Pushes the route built by `makeRoute`, and waits for the screen to call back with a value.
+    ///
+    /// ```swift
+    /// func editName() async {
+    ///     guard let name = await push({ .editName(current: user.name, onSave: $0) }) else { return }  // nil: user went back
+    ///     user.name = name
+    /// }
+    /// ```
+    ///
+    /// Calling the callback pops the screen. The await returns once it's off screen.
     public func push<Value: Sendable>(
         transition: ScreenTransition = .automatic,
         _ makeRoute: (Callback<Value>) -> Route
@@ -26,8 +29,13 @@ extension Routing {
         }
     }
 
-    /// Presents the route built by `makeRoute` and waits for the screen to call its callback.
-    /// Returns `nil` if the presentation is dismissed first.
+    /// Presents the route built by `makeRoute`, and waits for the screen to call back with a value.
+    ///
+    /// ```swift
+    /// let color = await present(as: .sheet(detents: [.medium])) { .colorPicker(onPick: $0) }  // nil: swiped away
+    /// ```
+    ///
+    /// Calling the callback dismisses the screen. The await returns once it's off screen.
     public func present<Value: Sendable>(
         as style: PresentationStyle = .sheet,
         transition: ScreenTransition = .automatic,
@@ -44,11 +52,16 @@ extension Routing {
 }
 
 extension Coordinator {
-    /// Pushes the child flow built by `makeChild` and waits for it to call its callback.
-    /// Returns `nil` if the flow is popped first.
-    public func push<Value: Sendable, Child: Routing>(
+    /// Pushes the child flow built by `makeChild`, and waits for it to call back with a value.
+    ///
+    /// ```swift
+    /// let answers = await pushFlow { SurveyCoordinator(onFinish: $0) }  // nil: user backed out of the flow
+    /// ```
+    ///
+    /// Calling the callback pops every screen of the flow. The await returns once they're off screen.
+    public func pushFlow<Value: Sendable, Child: Routing>(
         transition: ScreenTransition = .automatic,
-        child makeChild: (Callback<Value>) -> Child
+        _ makeChild: (Callback<Value>) -> Child
     ) async -> Value? {
         await awaitResult { callback in
             guard let navigator = requireNavigator() else { return nil }
@@ -60,12 +73,17 @@ extension Coordinator {
         }
     }
 
-    /// Presents the child flow built by `makeChild` and waits for it to call its callback.
-    /// Returns `nil` if the flow is dismissed first.
-    public func present<Value: Sendable, Child: Routing>(
+    /// Presents the child flow built by `makeChild`, and waits for it to call back with a value.
+    ///
+    /// ```swift
+    /// guard let user = await presentFlow(as: .fullScreenCover, { OnboardingCoordinator(onComplete: $0) }) else { return }
+    /// ```
+    ///
+    /// Calling the callback dismisses the flow. The await returns once it's off screen.
+    public func presentFlow<Value: Sendable, Child: Routing>(
         as style: PresentationStyle = .sheet,
         transition: ScreenTransition = .automatic,
-        child makeChild: (Callback<Value>) -> Child
+        _ makeChild: (Callback<Value>) -> Child
     ) async -> Value? {
         await awaitResult { callback in
             guard let navigator = requireNavigator() else { return nil }

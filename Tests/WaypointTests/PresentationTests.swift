@@ -18,7 +18,7 @@ struct PresentationTests {
         let presentation = try #require(navigator.presentation)
         #expect(presentation.style.kind == .sheet)
         #expect(presentation.navigator.presenter === navigator)
-        #expect(presentation.navigator.root.route(as: TestCoordinator.Route.self) == .detail(1))
+        #expect(presentation.route(as: TestCoordinator.Route.self) == .detail(1))
         #expect(presentation.selectedDetent == .medium)
     }
 
@@ -45,7 +45,7 @@ struct PresentationTests {
         let home = TestCoordinator()
         let navigator = Navigator(root: home)
         let child = ChildFlowCoordinator()
-        home.present(child: child)
+        home.presentFlow(child)
         let presentation = try #require(navigator.presentation)
 
         // WHEN
@@ -69,7 +69,7 @@ struct PresentationTests {
         navigator.presentationDismissedBySystem(first)
 
         // THEN
-        #expect(navigator.presentation?.navigator.root.route(as: TestCoordinator.Route.self) == .detail(2))
+        #expect(navigator.presentation?.route(as: TestCoordinator.Route.self) == .detail(2))
     }
 
     @Test("A presented child gets its own stack, and dismiss() releases it")
@@ -81,7 +81,7 @@ struct PresentationTests {
         do {
             let child = ChildFlowCoordinator()
             weakChild = child
-            home.present(child: child, as: .fullScreenCover)
+            home.presentFlow(child, as: .fullScreenCover)
         }
         // WHEN
         try #require(weakChild).push(.step(2))
@@ -93,7 +93,7 @@ struct PresentationTests {
         #expect(home.routes == [.home])
 
         // WHEN
-        weakChild?.dismiss()
+        weakChild?.finish()
 
         // THEN
         #expect(navigator.presentation == nil)
@@ -106,7 +106,7 @@ struct PresentationTests {
         let home = TestCoordinator()
         let navigator = Navigator(root: home)
         let child = ChildFlowCoordinator()
-        home.present(child: child)
+        home.presentFlow(child)
         child.push(.step(2))
 
         // WHEN
@@ -124,11 +124,11 @@ struct PresentationTests {
         let home = TestCoordinator()
         let navigator = Navigator(root: home)
         let first = ChildFlowCoordinator()
-        home.present(child: first)
+        home.presentFlow(first)
         let second = ChildFlowCoordinator()
-        first.present(child: second)
+        first.presentFlow(second)
         let third = ChildFlowCoordinator()
-        second.present(child: third)
+        second.presentFlow(third)
         #expect(navigator.topmost === third.navigator)
 
         // WHEN
@@ -146,14 +146,14 @@ struct PresentationTests {
         let home = TestCoordinator()
         let navigator = Navigator(root: home)
         let first = ChildFlowCoordinator()
-        home.present(child: first)
+        home.presentFlow(first)
         let second = ChildFlowCoordinator()
-        first.present(child: second)
+        first.presentFlow(second)
         let third = ChildFlowCoordinator()
-        second.present(child: third)
+        second.presentFlow(third)
 
         // WHEN
-        second.dismiss()
+        second.finish()
 
         // THEN
         #expect(navigator.topmost === first.navigator)
@@ -181,7 +181,7 @@ struct PresentationTests {
         // THEN
         let presentation = try #require(navigator.presentation)
         #expect(presentation.style.kind == .fullScreenCover)
-        #expect(presentation.navigator.root.route(as: TestCoordinator.Route.self) == .detail(2))
+        #expect(presentation.route(as: TestCoordinator.Route.self) == .detail(2))
     }
 
     @Test("Presenting while a dismissal animates queues the presentation")
@@ -199,7 +199,7 @@ struct PresentationTests {
         // THEN
         #expect(navigator.presentation == nil)
         navigator.presentationDidFinishDismissing()
-        #expect(navigator.presentation?.navigator.root.route(as: TestCoordinator.Route.self) == .detail(2))
+        #expect(navigator.presentation?.route(as: TestCoordinator.Route.self) == .detail(2))
     }
 
     @Test("Only the latest queued presentation is shown; earlier ones are torn down")
@@ -212,13 +212,13 @@ struct PresentationTests {
         let skipped = ChildFlowCoordinator()
 
         // WHEN
-        home.present(child: skipped)
+        home.presentFlow(skipped)
         home.present(.detail(3))
         navigator.presentationDidFinishDismissing()
 
         // THEN
         #expect(skipped.isFinished)
-        #expect(navigator.presentation?.navigator.root.route(as: TestCoordinator.Route.self) == .detail(3))
+        #expect(navigator.presentation?.route(as: TestCoordinator.Route.self) == .detail(3))
     }
 
     @Test("A presentation that never appeared is replaced right away")
@@ -232,7 +232,7 @@ struct PresentationTests {
         home.present(.detail(2))
 
         // THEN
-        #expect(navigator.presentation?.navigator.root.route(as: TestCoordinator.Route.self) == .detail(2))
+        #expect(navigator.presentation?.route(as: TestCoordinator.Route.self) == .detail(2))
     }
 
     @Test("The initial detent is used, and the selection stays writable")

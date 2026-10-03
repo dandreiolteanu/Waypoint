@@ -35,7 +35,7 @@ final class PerformanceTests: XCTestCase {
             let navigator = Navigator(root: home)
             for _ in 0..<500 {
                 let child = ChildFlowCoordinator()
-                home.present(child: child)
+                home.presentFlow(child)
                 child.push([.step(2), .step(3)])
                 navigator.dismissPresentation()
             }
@@ -54,7 +54,7 @@ final class PerformanceTests: XCTestCase {
                 var presenter: Coordinator = home
                 for _ in 0..<30 {
                     let child = ChildFlowCoordinator()
-                    presenter.present(child: child)
+                    presenter.presentFlow(child)
                     child.push((2..<12).map { .step($0) })
                     presenter = child
                 }

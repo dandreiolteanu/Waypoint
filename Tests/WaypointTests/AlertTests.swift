@@ -62,7 +62,7 @@ struct AlertTests {
         let home = TestCoordinator()
         let navigator = Navigator(root: home)
         let child = ChildFlowCoordinator()
-        home.present(child: child)
+        home.presentFlow(child)
 
         // WHEN
         let task = Task { await home.confirm("Sure?", confirmTitle: "Yes") }

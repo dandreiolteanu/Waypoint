@@ -36,7 +36,7 @@ final class AuthCoordinator: FlowCoordinator {
 
     /// Onboarding is a child flow with several screens and a shared draft. It hands back the finished `User`, or `nil` if cancelled.
     private func createAccount() async {
-        guard let user = await present(as: .fullScreenCover, child: { OnboardingCoordinator(onComplete: $0) }) else { return }
+        guard let user = await presentFlow(as: .fullScreenCover, { OnboardingCoordinator(onComplete: $0) }) else { return }
         session.register(user)
         onSignedIn(user)
     }

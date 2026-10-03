@@ -49,7 +49,7 @@ final class ExploreCoordinator: FlowCoordinator {
     func showNestedSheets(depth: Int) {
         guard depth > 0 else { return }
         let first = NestedSheetCoordinator(depth: 1)
-        present(child: first, as: .sheet(detents: [.large]))
+        presentFlow(first, as: .sheet(detents: [.large]))
         first.presentNext(remaining: depth - 1)
     }
 }
@@ -88,7 +88,7 @@ extension ExploreCoordinator: LabNavigation {
     }
 
     func runWizard() async -> String? {
-        await push(child: { WizardCoordinator(onFinish: $0) })
+        await pushFlow { WizardCoordinator(onFinish: $0) }
     }
 }
 
@@ -119,7 +119,7 @@ enum DetentDemo: String, CaseIterable, Identifiable, Hashable {
         }
     }
 
-    var detents: Set<PresentationDetent> {
+    var detents: [PresentationDetent] {
         switch self {
         case .medium: [.medium]
         case .mediumAndLarge: [.medium, .large]

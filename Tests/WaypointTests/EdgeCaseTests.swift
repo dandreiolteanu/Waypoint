@@ -11,7 +11,7 @@ struct EdgeCaseTests {
         let home = TestCoordinator()
         let navigator = Navigator(root: home)
         let child = ChildFlowCoordinator()
-        home.push(child: child)
+        home.pushFlow(child)
         navigator.pop()
         #expect(child.isFinished)
 
@@ -32,7 +32,7 @@ struct EdgeCaseTests {
         let home = TestCoordinator()
         let navigator = Navigator(root: home)
         let child = ChildFlowCoordinator()
-        home.push(child: child)
+        home.pushFlow(child)
         child.present(.step(5))
 
         // WHEN
@@ -49,13 +49,13 @@ struct EdgeCaseTests {
         let navigator = Navigator(root: home)
         home.present(.detail(1))
         let child = ChildFlowCoordinator()
-        home.push(child: child)
+        home.pushFlow(child)
 
         // WHEN
         navigator.pop()
 
         // THEN
-        #expect(navigator.presentation?.navigator.root.route(as: TestCoordinator.Route.self) == .detail(1))
+        #expect(navigator.presentation?.route(as: TestCoordinator.Route.self) == .detail(1))
     }
 
     @Test("dismissAll during a dismissal animation also cancels the queued presentation, and its await returns nil")
@@ -85,10 +85,10 @@ struct EdgeCaseTests {
         home.present(.detail(1))
         try #require(navigator.presentation).hasAppeared = true
         let child = ChildFlowCoordinator()
-        home.present(child: child)
+        home.presentFlow(child)
 
         // WHEN
-        child.dismiss()
+        child.finish()
         navigator.presentationDidFinishDismissing()
 
         // THEN
@@ -104,7 +104,7 @@ struct EdgeCaseTests {
         weak var weakChild: ChildFlowCoordinator?
         var resumed = false
         let task = Task {
-            let value = await home.push(child: { callback in
+            let value = await home.pushFlow({ callback in
                 let child = ChildFlowCoordinator(onComplete: callback)
                 weakChild = child
                 return child
@@ -143,7 +143,7 @@ struct EdgeCaseTests {
         weak var weakChild: ChildFlowCoordinator?
         var resumed = false
         let task = Task {
-            let value = await home.present(as: .sheet, child: { callback in
+            let value = await home.presentFlow(as: .sheet, { callback in
                 let child = ChildFlowCoordinator(onComplete: callback)
                 weakChild = child
                 return child
@@ -189,7 +189,7 @@ struct EdgeCaseTests {
         #expect(await task.value == true)
     }
 
-    @Test("A route shown with present(_:) is reachable through presented and closed with dismissPresented")
+    @Test("A route shown with present(_:) is reachable through presented, and closed with dismissPresented")
     func routePresentationAccessors() {
         // GIVEN
         let home = TestCoordinator()
@@ -201,11 +201,132 @@ struct EdgeCaseTests {
 
         // THEN
         #expect(navigator.presentation?.selectedDetent == .large)
-        #expect(home.presentation == nil)
-        home.dismiss()
-        #expect(navigator.presentation != nil, "dismiss() is about the flow's own presentation, and the root flow has none")
+        #expect(home.enclosingPresentation == nil)
         home.dismissPresented()
         #expect(navigator.presentation == nil)
+    }
+
+    @Test("A finished child can't pop, dismiss, or touch presentations that now belong to its parent")
+    func finishedChildCannotClose() {
+        // GIVEN
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        home.push(.detail(1))
+        let child = ChildFlowCoordinator()
+        home.pushFlow(child)
+        navigator.pop()
+        home.present(.detail(2))
+
+        // WHEN
+        child.pop()
+        child.popToRoot()
+        child.dismissPresented()
+        child.dismissAll()
+
+        // THEN
+        #expect(home.routes == [.home, .detail(1)])
+        #expect(navigator.presentation != nil)
+        #expect(child.presented == nil)
+    }
+
+    @Test("A pushed flow's await waits for a cover the flow presented to leave too")
+    func awaitWaitsForChildsCover() async throws {
+        // GIVEN
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        weak var weakChild: ChildFlowCoordinator?
+        var resumed = false
+        let task = Task {
+            let value = await home.pushFlow { callback in
+                let child = ChildFlowCoordinator(onComplete: callback)
+                weakChild = child
+                return child
+            }
+            resumed = true
+            return value
+        }
+        await settle()
+        let child = try #require(weakChild)
+        child.present(.step(9), as: .fullScreenCover)
+        let cover = try #require(navigator.presentation)
+        cover.didAppear()
+        cover.navigator.top.screen.didAppear()
+
+        // WHEN: the flow completes from inside its cover
+        child.complete(with: "done")
+        await settle()
+
+        // THEN: the cover is dismissed but still animating
+        #expect(navigator.presentation == nil)
+        #expect(!resumed)
+        cover.navigator.top.screen.didDisappear()
+        #expect(await task.value == "done")
+    }
+
+    @Test("A deep-link tab reset dismisses sheets opened from any tab")
+    func tabResetDismissesEveryTab() {
+        // GIVEN
+        enum AppTab: CaseIterable { case feed, profile }
+        let feed = TestCoordinator()
+        let profile = TestCoordinator()
+        let tabs = TabNavigator(selected: AppTab.feed) { tab in
+            switch tab {
+            case .feed: Navigator(root: feed)
+            case .profile: Navigator(root: profile)
+            }
+        }
+        feed.present(.detail(1))
+        profile.push(.detail(2))
+
+        // WHEN
+        tabs.select(.profile, reset: true)
+
+        // THEN
+        #expect(tabs[.feed].presentation == nil)
+        #expect(profile.routes == [.home])
+        #expect(tabs.coordinator(for: .profile, as: TestCoordinator.self) === profile)
+    }
+
+    @Test("A removed screen SwiftUI never reports as gone still closes, so its await can't hang")
+    func removedScreenClosesEventually() async throws {
+        // GIVEN
+        let saved = ScreenContent.closeTimeout
+        ScreenContent.closeTimeout = .milliseconds(50)
+        defer { ScreenContent.closeTimeout = saved }
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        let task = Task { await home.push { .pick($0) } }
+        await settle()
+        navigator.top.screen.didAppear()
+
+        // WHEN: popped, and SwiftUI never calls onDisappear
+        navigator.pop()
+
+        // THEN
+        #expect(await task.value == nil)
+    }
+
+    @Test("An alert queued behind a dismissal waits for the next sheet to appear before showing on it")
+    func queuedAlertWaitsForNextSheet() async throws {
+        // GIVEN
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        home.present(.detail(1))
+        try #require(navigator.presentation).hasAppeared = true
+        home.present(.detail(2))
+        let task = Task { await home.confirm("Sure?", confirmTitle: "Yes") }
+        await settle()
+
+        // WHEN: the old sheet finishes leaving, and the queued one is shown but hasn't appeared yet
+        navigator.presentationDidFinishDismissing()
+        let next = try #require(navigator.presentation)
+
+        // THEN
+        #expect(next.navigator.alertRequest == nil)
+        next.didAppear()
+        let request = try #require(next.navigator.alertRequest)
+        next.navigator.finishAlert(request, choosing: 0)
+        #expect(await task.value == true)
     }
 
     private func settle() async {

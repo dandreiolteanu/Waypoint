@@ -4,19 +4,24 @@ import SwiftUI
 
 extension Routing {
     /// Pushes `route` onto this coordinator's stack.
+    ///
+    /// ```swift
+    /// push(.book(id))
+    /// push(.book(id), transition: .zoom(sourceID: id))
+    /// ```
     public func push(_ route: Route, transition: ScreenTransition = .automatic) {
         guard let navigator = requireNavigator() else { return }
         navigator.push(makeEntry(for: route, transition: transition))
     }
 
-    /// Pushes several routes at once. Useful for deep links.
+    /// Pushes several routes at once, bottom first. Handy for deep links.
     public func push(_ routes: [Route]) {
         guard let navigator = requireNavigator() else { return }
         navigator.push(contentsOf: routes.map { makeEntry(for: $0, transition: .automatic) })
     }
 
     /// Replaces every screen above this coordinator's first screen with `routes`.
-    /// Called on a navigator's root coordinator, this is "set the whole stack".
+    /// Called on a navigator's root coordinator, this sets the whole stack.
     public func setStack(_ routes: [Route]) {
         guard let navigator = requireNavigator(), let anchor else { return }
         let base: [StackEntry] = if anchor === navigator.root {
@@ -29,86 +34,124 @@ extension Routing {
         navigator.setPath(base + routes.map { makeEntry(for: $0, transition: .automatic) })
     }
 
-    /// Presents `route` modally in a new navigator. The screen is built, and owned, by this coordinator.
-    /// So the screen closes itself with ``Coordinator/dismissPresented()`` (or SwiftUI's `dismiss`), and its detent is ``Coordinator/presented``.
-    /// To push screens inside the presentation, present a child coordinator with ``Coordinator/present(child:as:transition:)`` instead.
+    /// Presents a single `route` modally. The screen is built (and owned) by this coordinator.
+    ///
+    /// Close it with ``Coordinator/dismissPresented()``, or let the user swipe it away. Its detent and dismiss lock
+    /// are on ``Coordinator/presented``. To push screens *inside* the presentation, present a flow with
+    /// ``Coordinator/presentFlow(_:as:transition:)`` instead.
+    ///
+    /// ```swift
+    /// present(.filters, as: .sheet(detents: [.medium, .large]))
+    /// present(.photo(id), as: .fullScreenCover(embedsInNavigationStack: false), transition: .zoom(sourceID: id))
+    /// ```
     public func present(_ route: Route, as style: PresentationStyle = .sheet, transition: ScreenTransition = .automatic) {
         guard let navigator = requireNavigator() else { return }
         let presented = Navigator(rootEntry: makeEntry(for: route, transition: .automatic), embedsInNavigationStack: style.embedsInNavigationStack)
         navigator.present(presented, style: style, transition: transition, by: self)
     }
 
-    /// The routes of this coordinator's screens currently in its navigator, bottom first. Handy in tests.
+    /// The routes of this coordinator's screens in its stack, bottom first. Mostly for tests: `#expect(library.routes == [.shelf, .book(1)])`.
     public var routes: [Route] {
         navigator?.entries.filter { $0.owner === self }.compactMap { $0.route(as: Route.self) } ?? []
     }
 }
 
-// MARK: - Child coordinators
+// MARK: - Flows
 
 extension Coordinator {
-    /// Pushes `child`'s initial route onto this coordinator's stack. The child shares the stack and pushes onto it too.
-    /// The child is released once all of its screens are popped.
-    public func push<Child: Routing>(child: Child, transition: ScreenTransition = .automatic) {
+    /// Pushes a child flow onto this coordinator's stack, starting at its ``Routing/initialRoute``.
+    ///
+    /// The child shares the stack: it pushes onto it too, and ``finish()`` pops back to the screen that pushed it.
+    /// It's freed once all of its screens are gone. Pass `then` to push more of the child's routes right away (deep links).
+    ///
+    /// ```swift
+    /// pushFlow(SettingsCoordinator())
+    /// pushFlow(SettingsCoordinator(), then: [.about])
+    /// ```
+    public func pushFlow<Child: Routing>(_ child: Child, transition: ScreenTransition = .automatic, then routes: [Child.Route] = []) {
         guard let navigator = requireNavigator() else { return }
         let entry = child.makeEntry(for: child.initialRoute, transition: transition)
         child.attach(to: navigator, anchor: entry)
         navigator.push(entry)
+        if !routes.isEmpty { child.push(routes) }
     }
 
-    /// Presents `child` modally with a stack of its own. The child is released once the presentation is dismissed.
-    public func present<Child: Routing>(child: Child, as style: PresentationStyle = .sheet, transition: ScreenTransition = .automatic) {
+    /// Presents a child flow modally, with a stack of its own. The child is freed once the presentation is dismissed.
+    ///
+    /// Inside the flow, ``finish()`` dismisses it and ``enclosingPresentation`` controls the sheet.
+    ///
+    /// ```swift
+    /// presentFlow(CheckoutCoordinator(cart: cart), as: .sheet(detents: [.large]))
+    /// ```
+    public func presentFlow<Child: Routing>(_ child: Child, as style: PresentationStyle = .sheet, transition: ScreenTransition = .automatic) {
         guard let navigator = requireNavigator() else { return }
         navigator.present(Navigator(root: child, embedsInNavigationStack: style.embedsInNavigationStack), style: style, transition: transition, by: self)
     }
 
     // MARK: Closing
 
-    /// Pops the top screen of this coordinator's stack.
-    public func pop() {
-        navigator?.pop()
-    }
-
-    public func popToRoot() {
-        navigator?.popToRoot()
-    }
-
-    /// Pops back to this coordinator's first screen.
-    public func popToStart() {
-        guard let anchor else { return }
-        navigator?.pop(to: anchor)
-    }
-
-    // Two directions, two names:
-    // - `presentation` and `dismiss()` are about the modal this coordinator's *flow* lives in (it was presented with `present(child:)`).
-    // - `presented` and `dismissPresented()` are about what this coordinator *showed* on top of its flow, including a single route
-    //   shown with `present(_:)`. A screen in such a sheet is built by the presenting coordinator, so it closes itself with `dismissPresented()`.
-
-    /// The modal presentation this coordinator's flow is in, if any. Write to it to change the detent, or to block swipe-to-dismiss.
-    public var presentation: Presentation? {
-        navigator?.containingPresentation
-    }
-
-    /// What this coordinator's navigator is presenting right now, if anything. For a route shown with ``Routing/present(_:as:transition:)``,
-    /// this is how its coordinator moves the sheet's detent or locks dismissal.
-    public var presented: Presentation? {
-        navigator?.presentation
-    }
-
-    /// Dismisses the modal presentation this coordinator's flow is in. Does nothing for a flow that isn't presented.
-    public func dismiss() {
-        navigator?.dismiss()
-    }
-
-    /// Dismisses whatever this coordinator's navigator is presenting. Screens shown with ``Routing/present(_:as:transition:)`` close themselves with this.
-    public func dismissPresented() {
-        navigator?.dismissPresentation()
-    }
-
-    /// Ends this flow, whatever the way in was. A presented flow is dismissed. A pushed one is popped back to the screen it was pushed from.
+    /// Ends this flow, whatever the way in was.
+    ///
+    /// - A presented flow is dismissed.
+    /// - A pushed flow is popped back to the screen that pushed it.
+    /// - A navigator's root flow can't end this way (there's nothing to go back to). Tear the navigator down instead.
     public func finish() {
         guard let anchor, let navigator else { return }
         navigator.close(anchor)
+    }
+
+    /// Pops the top screen of this coordinator's stack, even when that screen belongs to a flow pushed on top.
+    public func pop() {
+        activeNavigator?.pop()
+    }
+
+    /// Pops this coordinator's stack back to its root screen. In a pushed flow, that pops into the parent's screens and
+    /// ends the flow; use ``popToStart()`` to stay in it.
+    public func popToRoot() {
+        activeNavigator?.popToRoot()
+    }
+
+    /// Pops back to this coordinator's own first screen.
+    public func popToStart() {
+        guard let anchor else { return }
+        activeNavigator?.pop(to: anchor)
+    }
+
+    /// Dismisses whatever this coordinator's stack is presenting (a route from ``Routing/present(_:as:transition:)``, or a
+    /// flow from ``presentFlow(_:as:transition:)``), whichever coordinator in the stack presented it. Anything stacked on
+    /// top of it goes too.
+    public func dismissPresented() {
+        activeNavigator?.dismissPresentation()
+    }
+
+    /// Dismisses every sheet and cover in this coordinator's presentation tree: everything presented from the stack at
+    /// its bottom, however deep. Sheets opened from *another tab* belong to that tab; use ``TabNavigator/select(_:reset:)``.
+    public func dismissAll() {
+        activeNavigator?.dismissAll()
+    }
+
+    // MARK: Presentations
+
+    /// What this coordinator's stack is presenting, while it's on screen. Write to it to move the sheet or lock swipe-to-dismiss:
+    ///
+    /// ```swift
+    /// presented?.selectedDetent = .large
+    /// presented?.isInteractiveDismissDisabled = hasUnsavedChanges
+    /// ```
+    public var presented: Presentation? {
+        activeNavigator?.presentation
+    }
+
+    /// The sheet or cover this coordinator's stack lives in: set for a presented flow, and for flows pushed inside it.
+    /// `nil` when the stack isn't presented (an app root or a tab).
+    public var enclosingPresentation: Presentation? {
+        activeNavigator?.containingPresentation
+    }
+
+    /// The navigator, while this flow is still running. A finished flow kept alive by a `Task` gets `nil`,
+    /// so a late `pop()` or `dismissPresented()` can't act on screens that now belong to its parent.
+    var activeNavigator: Navigator? {
+        isFinished ? nil : navigator
     }
 
     /// The navigator to act on, or `nil` once this flow has finished.

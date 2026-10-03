@@ -21,7 +21,7 @@ struct DetentDemoView: View {
 
 /// The coordinator writes `Presentation.selectedDetent`, and the sheet moves. Dragging the sheet writes it back the other way.
 struct ControlledDetentView: View {
-    static let detents: Set<PresentationDetent> = [.fraction(0.25), .medium, .large]
+    static let detents: [PresentationDetent] = [.fraction(0.25), .medium, .large]
 
     let onSelect: (PresentationDetent) -> Void
     let onClose: () -> Void
@@ -176,8 +176,8 @@ final class NestedSheetCoordinator: FlowCoordinator {
                 depth: depth,
                 onPresentNext: { self.presentNext(remaining: 1) },
                 onPush: { self.push(.pushed) },
-                onDismiss: { self.dismiss() },
-                onDismissAll: { self.navigator?.dismissAll() }
+                onDismiss: { self.finish() },
+                onDismissAll: { self.dismissAll() }
             )
         case .pushed:
             Text("Pushed inside sheet level \(depth)")
@@ -189,7 +189,7 @@ final class NestedSheetCoordinator: FlowCoordinator {
     func presentNext(remaining: Int) {
         guard remaining > 0 else { return }
         let next = NestedSheetCoordinator(depth: depth + 1)
-        present(child: next, as: .sheet(detents: depth.isMultiple(of: 2) ? [.large] : [.medium, .large]))
+        presentFlow(next, as: .sheet(detents: depth.isMultiple(of: 2) ? [.large] : [.medium, .large]))
         next.presentNext(remaining: remaining - 1)
     }
 }

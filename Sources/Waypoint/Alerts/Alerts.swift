@@ -1,11 +1,19 @@
 import SwiftUI
 
 /// A button in an alert or confirmation dialog. Tapping it returns `value` to whoever awaited the alert.
+///
+/// ```swift
+/// AlertAction("Delete", role: .destructive, value: Choice.delete)
+/// ```
 public struct AlertAction<Value: Sendable> {
+    /// The button's title.
     public let title: String
+    /// The button's role, such as `.destructive` or `.cancel`.
     public let role: ButtonRole?
+    /// What the awaiting call returns when this button is tapped.
     public let value: Value
 
+    /// A button titled `title` that returns `value`.
     public init(_ title: String, role: ButtonRole? = nil, value: Value) {
         self.title = title
         self.role = role
@@ -13,17 +21,20 @@ public struct AlertAction<Value: Sendable> {
     }
 }
 
+/// Whether a question shows as a centered alert or as a confirmation dialog (an action sheet on iPhone).
 public enum AlertStyle: Sendable {
+    /// A centered alert.
     case alert
+    /// A confirmation dialog, which rises from the bottom on iPhone.
     case confirmationDialog
 }
 
-/// An alert waiting for an answer, held by the ``Navigator`` showing it.
+/// An alert waiting for an answer, held by the navigator showing it.
 @MainActor
-public final class AlertRequest: Identifiable {
-    public let title: String
-    public let message: String?
-    public let style: AlertStyle
+final class AlertRequest: Identifiable {
+    let title: String
+    let message: String?
+    let style: AlertStyle
     let buttons: [Button]
     private var resolve: ((Int?) -> Void)?
 
@@ -41,7 +52,7 @@ public final class AlertRequest: Identifiable {
         self.resolve = resolve
     }
 
-    nonisolated public var id: ObjectIdentifier { ObjectIdentifier(self) }
+    nonisolated var id: ObjectIdentifier { ObjectIdentifier(self) }
 
     /// Resolves the alert once. Pass `nil` for "dismissed without choosing".
     func finish(choosing index: Int?) {
@@ -132,11 +143,13 @@ struct AlertModifier: ViewModifier {
     }
 
     private func isPresented(_ style: AlertStyle) -> Binding<Bool> {
-        Binding(
+        // The request this binding was rendered with. Replacing an alert must not let SwiftUI's "false" for the old one finish the new one.
+        weak let rendered = navigator?.alertRequest
+        return Binding(
             get: { [weak navigator] in navigator?.alertRequest?.style == style },
             set: { [weak navigator] isPresented in
                 // SwiftUI also writes false after a button tap. finishAlert lets the button's choice win, so this only catches dismissals with no choice.
-                guard !isPresented, let navigator, let request = navigator.alertRequest, request.style == style else { return }
+                guard !isPresented, let navigator, let request = navigator.alertRequest, request === rendered, request.style == style else { return }
                 navigator.finishAlert(request, choosing: nil)
             }
         )

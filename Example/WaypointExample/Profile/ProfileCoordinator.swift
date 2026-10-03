@@ -33,11 +33,7 @@ final class ProfileCoordinator: FlowCoordinator {
     }
 
     func showSettings(section: SettingsCoordinator.Route?) {
-        let settings = SettingsCoordinator(onSignOut: onSignOut)
-        push(child: settings)
-        if let section, section != settings.initialRoute {
-            settings.push(section)
-        }
+        pushFlow(SettingsCoordinator(onSignOut: onSignOut), then: section.map { [$0] } ?? [])
     }
 }
 

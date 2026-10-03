@@ -204,7 +204,7 @@ struct PushedChildTests {
         let child = ChildFlowCoordinator()
 
         // WHEN
-        home.push(child: child)
+        home.pushFlow(child)
         child.push(.step(2))
 
         // THEN
@@ -222,7 +222,7 @@ struct PushedChildTests {
         do {
             let child = ChildFlowCoordinator()
             weakChild = child
-            home.push(child: child)
+            home.pushFlow(child)
             child.push(.step(2))
         }
 
@@ -246,7 +246,7 @@ struct PushedChildTests {
         let home = TestCoordinator()
         let navigator = Navigator(root: home)
         let child = ChildFlowCoordinator()
-        home.push(child: child)
+        home.pushFlow(child)
         child.push(.step(2))
 
         // WHEN
@@ -265,7 +265,7 @@ struct PushedChildTests {
         let navigator = Navigator(root: home)
         home.push(.detail(1))
         let child = ChildFlowCoordinator()
-        home.push(child: child)
+        home.pushFlow(child)
         child.push([.step(2), .step(3)])
 
         // WHEN
@@ -285,7 +285,7 @@ struct PushedChildTests {
         let navigator = Navigator(root: home)
         home.push(.detail(1))
         let child = ChildFlowCoordinator()
-        home.push(child: child)
+        home.pushFlow(child)
         child.push(.step(2))
 
         // WHEN
@@ -303,7 +303,7 @@ struct PushedChildTests {
         let home = TestCoordinator()
         let navigator = Navigator(root: home)
         let child = ChildFlowCoordinator()
-        home.push(child: child)
+        home.pushFlow(child)
         child.push([.step(2), .step(3)])
 
         // WHEN

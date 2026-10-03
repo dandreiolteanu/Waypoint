@@ -1,21 +1,36 @@
 import SwiftUI
+import os
 
-/// The state behind one `NavigationStack`: a root screen, the pushed screens, and at most one modal presentation.
+let waypointLog = Logger(subsystem: "Waypoint", category: "navigation")
+
+/// The navigation state of one `NavigationStack`: a root screen, the pushed screens, and at most one sheet or cover.
 ///
-/// Navigators form a tree. Each presentation holds a child navigator, which can present again.
-/// Strong references only point down this tree, from the navigator to its entries and from the entries to the coordinators and view models that built them.
-/// Coordinators keep only a weak reference back to their navigator. So when a screen leaves the stack, by a pop, a swipe-back, a dismissal or a root switch, everything it owned is released.
+/// You create a navigator for each independent stack (the app's root, each tab) and show it with ``NavigationHost``.
+/// Coordinators do the navigating; the navigator is the state they act on.
+///
+/// ```swift
+/// let navigator = Navigator(root: LibraryCoordinator())
+/// NavigationHost(navigator)
+/// ```
+///
+/// ## Ownership
+/// Navigators form a tree: each presentation holds a child navigator, which can present again. Strong references only
+/// point *down* the tree, from a navigator to its screens and from the screens to the coordinators and view models that
+/// built them. Coordinators hold their navigator weakly. So when a screen leaves (pop, swipe-back, dismissal, root switch)
+/// everything it owned is freed. Keep the root navigator in something long-lived: an app coordinator, a
+/// ``TabNavigator``, or let ``NavigationHost/init(root:)`` keep it for you.
 @MainActor
 @Observable
 public final class Navigator {
-    public private(set) var root: StackEntry
-    public private(set) var path: [StackEntry] = []
+    private(set) var root: StackEntry
+    private(set) var path: [StackEntry] = []
+    /// The sheet or cover this navigator is showing, if any.
     public private(set) var presentation: Presentation?
-    /// The alert or confirmation dialog on screen, if any. See ``Coordinator/alert(_:message:style:actions:)``.
-    public private(set) var alertRequest: AlertRequest?
+    /// The alert or confirmation dialog on screen, if any.
+    private(set) var alertRequest: AlertRequest?
     /// The navigator that presented this one, if any.
-    @ObservationIgnored public private(set) weak var presenter: Navigator?
-    public let embedsInNavigationStack: Bool
+    @ObservationIgnored private(set) weak var presenter: Navigator?
+    let embedsInNavigationStack: Bool
 
     /// A presentation waiting for the current one to finish animating out.
     @ObservationIgnored private var queuedPresentation: Presentation?
@@ -25,41 +40,65 @@ public final class Navigator {
     @ObservationIgnored private var queuedAlert: AlertRequest?
     @ObservationIgnored private(set) var isTornDown = false
 
-    /// A navigator whose root is a plain view, with no coordinator behind it.
-    public convenience init(root: some View, embedsInNavigationStack: Bool = true) {
-        self.init(rootEntry: StackEntry(route: AnyHashable(RootView()), content: AnyView(root), owner: nil), embedsInNavigationStack: embedsInNavigationStack)
+    /// A navigator whose root screen is `coordinator`'s ``Routing/initialRoute``. The navigator owns the coordinator from here on.
+    public convenience init<C: Routing>(root coordinator: C) {
+        self.init(root: coordinator, embedsInNavigationStack: true)
     }
 
-    /// A navigator whose root is the coordinator's ``Routing/initialRoute``.
-    /// The navigator owns the coordinator from here on.
-    public convenience init<C: Routing>(root coordinator: C, embedsInNavigationStack: Bool = true) {
+    convenience init<C: Routing>(root coordinator: C, embedsInNavigationStack: Bool) {
         let entry = coordinator.makeEntry(for: coordinator.initialRoute, transition: .automatic)
         self.init(rootEntry: entry, embedsInNavigationStack: embedsInNavigationStack)
         coordinator.attach(to: self, anchor: entry)
     }
 
-    init(rootEntry: StackEntry, embedsInNavigationStack: Bool) {
+    init(rootEntry: StackEntry, embedsInNavigationStack: Bool, isTracked: Bool = true) {
         self.root = rootEntry
         self.embedsInNavigationStack = embedsInNavigationStack
-        LifetimeTracker.track(self, kind: .navigator)
+        if isTracked { LifetimeTracker.track(self, kind: .navigator) }
     }
 
-    // MARK: - Stack
+    /// An empty, inert navigator, handed out in place of ones that were torn down.
+    static let placeholder: Navigator = {
+        let navigator = Navigator(
+            rootEntry: StackEntry(route: AnyHashable(0), content: AnyView(EmptyView()), owner: nil, isTracked: false),
+            embedsInNavigationStack: true,
+            isTracked: false
+        )
+        navigator.tearDown()
+        return navigator
+    }()
+
+    // MARK: - Reading
+
+    /// The coordinator behind the root screen, as `C`. Use it to reach a tab's coordinator for a deep link:
+    /// `tabs[.feed].rootCoordinator(as: FeedCoordinator.self)?.showPhoto(id)`.
+    public func rootCoordinator<C: Coordinator>(as type: C.Type) -> C? {
+        root.owner as? C
+    }
+
+    /// The route on top of the stack, as `Route`, or `nil` when the top screen has another route type. Mostly for tests.
+    public func topRoute<Route: Hashable>(as type: Route.Type) -> Route? {
+        top.route(as: type)
+    }
+
+    /// The number of pushed screens, not counting the root.
+    public var depth: Int { path.count }
 
     /// Every entry, from the root to the top.
-    public var entries: [StackEntry] { [root] + path }
+    var entries: [StackEntry] { [root] + path }
 
-    public var top: StackEntry { path.last ?? root }
+    var top: StackEntry { path.last ?? root }
 
     /// The deepest navigator that is currently presented, or `self` when nothing is presented.
-    public var topmost: Navigator { presentation?.navigator.topmost ?? self }
+    var topmost: Navigator { presentation?.navigator.topmost ?? self }
 
     /// The presentation showing this navigator, or `nil` when it isn't presented.
-    /// Use it to change the sheet's detent, or to lock swipe-to-dismiss, from inside.
-    public var containingPresentation: Presentation? {
+    var containingPresentation: Presentation? {
         guard let presentation = presenter?.presentation, presentation.navigator === self else { return nil }
         return presentation
     }
+
+    // MARK: - Stack
 
     func push(_ entry: StackEntry) {
         push(contentsOf: [entry])
@@ -68,20 +107,33 @@ public final class Navigator {
     func push(contentsOf newEntries: [StackEntry]) {
         guard !isTornDown else { return }
         assert(embedsInNavigationStack, "Waypoint: pushing onto a navigator with no NavigationStack. Present with `embedsInNavigationStack: true`.")
+        #if DEBUG
+        if presentation != nil {
+            waypointLog.warning("Waypoint: pushed \(newEntries.map { "\($0.route.base)" }, privacy: .public) behind a presented sheet or cover. If a presented screen pushed this, present a flow (presentFlow) instead, so it has its own stack.")
+        }
+        #endif
         path.append(contentsOf: newEntries)
     }
 
+    /// Pops `count` screens (fewer if the stack isn't that deep).
     public func pop(count: Int = 1) {
         guard count > 0, !path.isEmpty else { return }
         setPath(Array(path.dropLast(count)))
     }
 
+    /// Pops every pushed screen.
     public func popToRoot() {
         setPath([])
     }
 
+    /// Dismisses every presentation and pops to the root: a clean slate before a deep link.
+    public func reset() {
+        dismissPresentation()
+        popToRoot()
+    }
+
     /// Pops everything above `entry`, which stays on screen. Does nothing when `entry` isn't in this stack.
-    public func pop(to entry: StackEntry) {
+    func pop(to entry: StackEntry) {
         if entry === root { return popToRoot() }
         guard let index = path.firstIndex(of: entry) else { return }
         setPath(Array(path.prefix(through: index)))
@@ -100,7 +152,21 @@ public final class Navigator {
             removed = path.filter { !kept.contains(ObjectIdentifier($0)) }
         }
         path = newPath
-        let closingGroup = removed.map(\.screen)
+        // Flows whose first screen is leaving end now, and so do the sheets they presented. Those sheets join the same
+        // closing group, so an await on the flow resumes only after they've animated out too.
+        let endingFlows = removed.compactMap { entry in entry.owner.flatMap { $0.anchor === entry ? $0 : nil } }
+        let endingPresentations = [presentation, queuedPresentation].compactMap { $0 }.filter { candidate in
+            endingFlows.contains { $0 === candidate.presentedBy }
+        }
+        let closingGroup = removed.map(\.screen) + endingPresentations.flatMap { $0.navigator.subtreeScreens() }
+        for ending in endingPresentations {
+            if ending === queuedPresentation {
+                queuedPresentation = nil
+                ending.navigator.tearDown(closingWith: closingGroup)
+            } else {
+                endPresentation(ending, closingWith: closingGroup)
+            }
+        }
         removed.reversed().forEach { $0.markRemoved(closingWith: closingGroup) }
     }
 
@@ -148,7 +214,7 @@ public final class Navigator {
     }
 
     /// Dismisses this navigator, when it's presented, or cancels it while it's still waiting to be presented.
-    public func dismiss() {
+    func dismiss() {
         guard let presenter else { return }
         if presenter.presentation?.navigator === self {
             presenter.dismissPresentation()
@@ -193,12 +259,12 @@ public final class Navigator {
         showQueuedAlert()
     }
 
-    private func endPresentation(_ ending: Presentation) {
+    private func endPresentation(_ ending: Presentation, closingWith closingGroup: [ScreenContent]? = nil) {
         presentation = nil
         if ending.hasAppeared {
             dismissingPresentation = ending
         }
-        ending.navigator.tearDown()
+        ending.navigator.tearDown(closingWith: closingGroup ?? ending.navigator.subtreeScreens())
         if dismissingPresentation == nil {
             showQueuedPresentation()
             showQueuedAlert()
@@ -230,8 +296,13 @@ public final class Navigator {
     private func showQueuedAlert() {
         guard let alert = queuedAlert else { return }
         queuedAlert = nil
-        // A presentation shown from the queue is now on top, so the alert goes there.
-        topmost.show(alert)
+        // A presentation shown from the queue is now on top, so the alert goes there, once that sheet is actually up.
+        let target = topmost
+        if let presentation = target.containingPresentation, !presentation.hasAppeared {
+            presentation.alertOnAppear = alert
+        } else {
+            target.show(alert)
+        }
     }
 
     func finishAlert(_ request: AlertRequest, choosing index: Int?) {
@@ -247,14 +318,15 @@ public final class Navigator {
 
     // MARK: - Teardown
 
-    /// Marks every entry removed, top first. That resolves pending results with `nil` and finishes coordinators.
-    /// The objects themselves are freed when the last reference to this navigator goes.
+    /// Ends everything in this navigator's tree: pending awaits return `nil`, alerts resolve, and every coordinator's
+    /// ``Coordinator/didFinish()`` runs. Call it when you discard a tree yourself (a root switch); the objects are freed
+    /// when your last reference goes. Dismissals and pops do this for you.
     public func tearDown() {
         tearDown(closingWith: subtreeScreens())
     }
 
     /// `closingGroup` holds every screen leaving with this tree. An await on any entry in the tree resumes only once they've all left.
-    private func tearDown(closingWith closingGroup: [ScreenContent]) {
+    fileprivate func tearDown(closingWith closingGroup: [ScreenContent]) {
         guard !isTornDown else { return }
         isTornDown = true
         for alert in [alertRequest, queuedAlert].compactMap(\.self) { alert.finish(choosing: nil) }
@@ -267,12 +339,9 @@ public final class Navigator {
         root.markRemoved(closingWith: closingGroup)
     }
 
-    private func subtreeScreens() -> [ScreenContent] {
+    fileprivate func subtreeScreens() -> [ScreenContent] {
         entries.map(\.screen)
             + (presentation?.navigator.subtreeScreens() ?? [])
             + (queuedPresentation?.navigator.subtreeScreens() ?? [])
     }
 }
-
-/// The route of a navigator whose root is a plain view.
-struct RootView: Hashable {}

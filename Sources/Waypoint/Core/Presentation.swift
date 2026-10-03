@@ -1,38 +1,63 @@
 import SwiftUI
 
-/// A navigator shown modally by another navigator.
+/// A sheet or full-screen cover that is on screen.
 ///
-/// It's observable, so a coordinator can move the sheet between detents (``selectedDetent``),
-/// or lock swipe-to-dismiss while a form has unsaved changes (``isInteractiveDismissDisabled``), after it is on screen.
+/// Reach it through ``Coordinator/presented`` (what a coordinator showed) or ``Coordinator/enclosingPresentation``
+/// (the one a presented flow lives in). Both properties are observable and writable while it's up:
+///
+/// ```swift
+/// presented?.selectedDetent = .large                               // move the sheet
+/// enclosingPresentation?.isInteractiveDismissDisabled = isDirty    // block swipe-to-dismiss while editing
+/// ```
 @MainActor
 @Observable
 public final class Presentation: Identifiable {
-    public let style: PresentationStyle
-    public let transition: ScreenTransition
-    /// The presented content. It has its own stack and can present further.
-    public let navigator: Navigator
+    /// The detent the sheet is resting at. It follows the user's drags, and setting it moves the sheet.
     public var selectedDetent: PresentationDetent
+    /// Whether swipe-to-dismiss is blocked. Programmatic dismissal still works.
     public var isInteractiveDismissDisabled: Bool
+
+    let style: PresentationStyle
+    let transition: ScreenTransition
+    /// The presented content, with a stack of its own. It can present further.
+    let navigator: Navigator
     /// Set once the presented content has appeared. After that, a dismissal has to wait for UIKit's
     /// dismissal animation to finish before anything else can be presented from the same navigator.
     @ObservationIgnored var hasAppeared = false
     /// The coordinator that asked for this presentation. When that coordinator finishes, the presentation goes with it.
     @ObservationIgnored weak var presentedBy: Coordinator?
+    /// An alert waiting for this presentation to appear. UIKit can't present it from a sheet that isn't in the window yet.
+    @ObservationIgnored var alertOnAppear: AlertRequest?
 
     init(navigator: Navigator, style: PresentationStyle, transition: ScreenTransition) {
         self.navigator = navigator
         self.style = style
         self.transition = transition
-        self.selectedDetent = style.initialDetent ?? Self.defaultDetent(in: style.detents)
+        self.selectedDetent = style.openingDetent
         self.isInteractiveDismissDisabled = style.isInteractiveDismissDisabled
     }
 
+    /// Whether this is a sheet rather than a full-screen cover.
+    public var isSheet: Bool { style.kind == .sheet }
+
+    /// The route at the bottom of the presented stack, as `Route`, or `nil` for another route type. Mostly for tests.
+    public func route<Route: Hashable>(as type: Route.Type) -> Route? {
+        navigator.root.route(as: type)
+    }
+
+    /// The route on top of the presented stack, as `Route`, or `nil` for another route type. Mostly for tests.
+    public func topRoute<Route: Hashable>(as type: Route.Type) -> Route? {
+        navigator.top.route(as: type)
+    }
+
+    /// The presentation's identity.
     nonisolated public var id: ObjectIdentifier { ObjectIdentifier(self) }
 
-    private static func defaultDetent(in detents: Set<PresentationDetent>) -> PresentationDetent {
-        // A set has no order, so mirror the system and open at the smaller standard detent. Pass `initialDetent` for custom detents.
-        if detents.contains(.medium) { return .medium }
-        if detents.contains(.large) || detents.isEmpty { return .large }
-        return detents.first ?? .large
+    func didAppear() {
+        hasAppeared = true
+        if let alert = alertOnAppear {
+            alertOnAppear = nil
+            navigator.show(alert)
+        }
     }
 }

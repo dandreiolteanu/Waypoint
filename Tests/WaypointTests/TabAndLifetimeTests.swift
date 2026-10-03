@@ -5,12 +5,17 @@ import Testing
 @MainActor
 @Suite("Tabs")
 struct TabTests {
-    enum AppTab: Hashable { case feed, profile }
+    enum AppTab: Hashable, CaseIterable { case feed, profile }
 
     private func makeTabs() -> (TabNavigator<AppTab>, feed: TestCoordinator, profile: TestCoordinator) {
         let feed = TestCoordinator()
         let profile = TestCoordinator()
-        let tabs = TabNavigator(selectedTab: AppTab.feed, tabs: [.feed: Navigator(root: feed), .profile: Navigator(root: profile)])
+        let tabs = TabNavigator(selected: AppTab.feed) { tab in
+            switch tab {
+            case .feed: Navigator(root: feed)
+            case .profile: Navigator(root: profile)
+            }
+        }
         return (tabs, feed, profile)
     }
 
@@ -63,12 +68,36 @@ struct TabTests {
         profile.present(.detail(2))
 
         // WHEN
-        tabs.select(.profile, popToRoot: true)
+        tabs.select(.profile, reset: true)
 
         // THEN
         #expect(tabs.selectedTab == .profile)
         #expect(profile.routes == [.home])
         #expect(tabs[.profile].presentation == nil)
+    }
+
+    @Test("A torn-down TabNavigator still held by a view keeps nothing alive")
+    func teardownReleasesNavigators() {
+        // GIVEN
+        weak var weakFeedNavigator: Navigator?
+        weak var weakFeed: TestCoordinator?
+        let tabs: TabNavigator<AppTab>
+        do {
+            let (made, feed, _) = makeTabs()
+            tabs = made
+            weakFeedNavigator = made[.feed]
+            weakFeed = feed
+            feed.push(.detail(1))
+        }
+
+        // WHEN: torn down, but something (a stale view) still holds `tabs`
+        tabs.tearDown()
+
+        // THEN
+        #expect(weakFeedNavigator == nil)
+        #expect(weakFeed == nil)
+        #expect(tabs.coordinator(for: .feed, as: TestCoordinator.self) == nil)
+        #expect(tabs[.feed] === tabs[.profile], "A stale view gets the shared empty placeholder")
     }
 
     @Test("Tearing the tabs down finishes every tab's coordinators")
@@ -102,16 +131,16 @@ struct LifetimeTests {
             // GIVEN: a deep tree of pushes and presentations in one tab
             let home = TestCoordinator()
             let navigator = Navigator(root: home)
-            tabs = TabNavigator(selectedTab: 0, tabs: [0: navigator])
+            tabs = TabNavigator(selected: 0, tabs: [0]) { _ in navigator }
             home.push([.detail(1), .detail(2)])
             let pushed = ChildFlowCoordinator()
-            home.push(child: pushed)
+            home.pushFlow(pushed)
             pushed.push(.step(2))
             let presented = ChildFlowCoordinator()
-            pushed.present(child: presented)
+            pushed.presentFlow(presented)
             presented.push(.step(2))
             let nested = ChildFlowCoordinator()
-            presented.present(child: nested, as: .fullScreenCover)
+            presented.presentFlow(nested, as: .fullScreenCover)
             home.madeViewModels.all.compactMap { $0 }.forEach { viewModels.append($0) }
             for child in [pushed, presented, nested] {
                 child.madeViewModels.all.compactMap { $0 }.forEach { childViewModels.append($0) }
@@ -166,7 +195,7 @@ struct LifetimeTests {
         for round in 0..<50 {
             home.push((0..<20).map { .detail(round * 100 + $0) })
             let child = ChildFlowCoordinator()
-            home.present(child: child)
+            home.presentFlow(child)
             child.push(.step(2))
             navigator.dismissPresentation()
             navigator.pop(count: 10)
