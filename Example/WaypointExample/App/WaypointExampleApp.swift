@@ -30,7 +30,7 @@ struct AppRootView: View {
             }
         }
         .animation(.smooth(duration: 0.45), value: coordinator.root.id)
-        .overlay(alignment: .topLeading) {
+        .overlay(alignment: .bottomTrailing) {
             if LaunchOptions.showsLifetimeOverlay {
                 LifetimeOverlay()
             }

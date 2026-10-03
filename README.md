@@ -265,8 +265,20 @@ Show `LifetimeTracker.liveCount(of:)` in a debug overlay, or assert on it in UI 
 | Globals | None. Every scene owns its own tree. | Shared stores keyed by type. |
 | Proof | Unit tests, benchmarks, and UI tests that count live objects after every flow. | Usually none for memory. |
 
+## Running the tests
+
+```bash
+swift test                       # unit tests and benchmarks, on macOS (about 10s)
+
+cd Example && xcodegen generate  # only if project.yml changed; the generated project is committed
+xcodebuild test -project WaypointExample.xcodeproj -scheme WaypointExample \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'   # 30 UI flows, about 9 min
+```
+
+Each UI test reads the example's lifetime overlay before and after a flow, and fails with the names of whatever is still alive.
+
 ## Repository
 
 - `Sources/Waypoint`: the library (about 1,000 lines with doc comments, and no dependencies).
 - `Tests/WaypointTests`: Swift Testing suites for stack, presentation, results, tabs and memory, plus XCTest benchmarks.
-- `Example/`: an app covering every case above, with UI tests that walk each flow and assert that every object it created is freed. Run `xcodegen generate` in `Example/`, then open `WaypointExample.xcodeproj`.
+- `Example/`: an app covering every case above, with UI tests that walk each flow and assert that every object it created is freed. Open `Example/WaypointExample.xcodeproj`.

@@ -1,7 +1,7 @@
 import SwiftUI
 import Waypoint
 
-/// A pill in the top-leading corner with the number of live coordinators, navigators, screens and view models.
+/// A pill in the bottom-trailing corner, above the tab bar, with the number of live coordinators, navigators, screens and view models.
 /// Walk into a flow and back out: every number should return to where it started. Tap it for the type names.
 /// The UI tests read its accessibility value.
 struct LifetimeOverlay: View {
@@ -28,8 +28,9 @@ struct LifetimeOverlay: View {
             .accessibilityLabel("Live objects: " + LifetimeTracker.liveTypeNames().joined(separator: ", "))
             .accessibilityValue(counts.accessibilityValue)
         }
-        .padding(.leading, 12)
-        .padding(.top, 2)
+        .padding(.trailing, 12)
+        // Clears the tab bar.
+        .padding(.bottom, 60)
     }
 }
 
