@@ -158,7 +158,7 @@ public final class Navigator {
         let endingPresentations = [presentation, queuedPresentation].compactMap { $0 }.filter { candidate in
             endingFlows.contains { $0 === candidate.presentedBy }
         }
-        let closingGroup = removed.map(\.screen) + endingPresentations.flatMap { $0.navigator.subtreeScreens() }
+        let closingGroup = ClosingGroup(screens: removed.map(\.screen) + endingPresentations.flatMap { $0.navigator.subtreeScreens() })
         for ending in endingPresentations {
             if ending === queuedPresentation {
                 queuedPresentation = nil
@@ -259,12 +259,12 @@ public final class Navigator {
         showQueuedAlert()
     }
 
-    private func endPresentation(_ ending: Presentation, closingWith closingGroup: [ScreenContent]? = nil) {
+    private func endPresentation(_ ending: Presentation, closingWith closingGroup: ClosingGroup? = nil) {
         presentation = nil
         if ending.hasAppeared {
             dismissingPresentation = ending
         }
-        ending.navigator.tearDown(closingWith: closingGroup ?? ending.navigator.subtreeScreens())
+        ending.navigator.tearDown(closingWith: closingGroup ?? ClosingGroup(screens: ending.navigator.subtreeScreens()))
         if dismissingPresentation == nil {
             showQueuedPresentation()
             showQueuedAlert()
@@ -322,11 +322,11 @@ public final class Navigator {
     /// ``Coordinator/didFinish()`` runs. Call it when you discard a tree yourself (a root switch); the objects are freed
     /// when your last reference goes. Dismissals and pops do this for you.
     public func tearDown() {
-        tearDown(closingWith: subtreeScreens())
+        tearDown(closingWith: ClosingGroup(screens: subtreeScreens()))
     }
 
     /// `closingGroup` holds every screen leaving with this tree. An await on any entry in the tree resumes only once they've all left.
-    fileprivate func tearDown(closingWith closingGroup: [ScreenContent]) {
+    fileprivate func tearDown(closingWith closingGroup: ClosingGroup) {
         guard !isTornDown else { return }
         isTornDown = true
         for alert in [alertRequest, queuedAlert].compactMap(\.self) { alert.finish(choosing: nil) }

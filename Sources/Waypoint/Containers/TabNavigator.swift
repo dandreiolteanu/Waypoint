@@ -23,7 +23,8 @@ public final class TabNavigator<Tab: Hashable> {
     /// Whether tapping the selected tab again pops it to its root. On by default.
     public var popsToRootOnReselect: Bool
     @ObservationIgnored private var navigators: [Tab: Navigator]
-    @ObservationIgnored private var isTornDown = false
+    /// Observed by ``TabHost``, which renders nothing once the tabs are torn down.
+    private(set) var isTornDown = false
 
     /// Creates a navigator for each tab in `tabs`.
     ///

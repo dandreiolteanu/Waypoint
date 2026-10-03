@@ -377,9 +377,9 @@ final class RootAndDeepLinkUITests: WaypointUITestCase {
         confirm.tap()
 
         waitFor("welcome.signIn")
-        // Waypoint frees its own graph at once: only the auth navigator and its welcome screen are left.
-        // SwiftUI can keep a removed TabView's background-tab content for a few more updates, so coordinators are checked at the end.
+        // Only the auth flow is left: one coordinator, one navigator, one screen, no view models.
         let signedOut = settledCounts()
+        XCTAssertEqual(signedOut.coordinators, 1, "\(signedOut). \(lifetime.label)")
         XCTAssertEqual(signedOut.navigators, 1, "\(signedOut). \(lifetime.label)")
         XCTAssertEqual(signedOut.entries, 1, "\(signedOut). \(lifetime.label)")
 

@@ -39,7 +39,7 @@ final class LibraryCoordinator: FlowCoordinator {
 - **Push and present** routes, or whole flows (child coordinators), with any detent, full-screen covers and zoom transitions.
 - **Await results.** `await push { … }` returns the value, or `nil` if the user left. It resumes exactly once, after the screen has fully left the screen.
 - **Tabs and root switching**, with tap-again-to-pop and teardown of the old tree.
-- **Leak-proof by construction.** Navigation state owns coordinators. However the user leaves (pop, swipe-back, swipe-down, dismissal, root switch), the flow is freed. Thirty UI flows prove it on iOS 18 and 27.
+- **Leak-proof by construction.** Navigation state owns coordinators. However the user leaves (pop, swipe-back, swipe-down, dismissal, root switch), the flow is freed. Thirty-one UI flows prove it on iOS 18 and 27, including repeated sign-out.
 - **Testable without SwiftUI.** Navigation is plain state.
 
 Requires iOS 17 (zoom transitions need iOS 18) and Swift 6. No dependencies.
@@ -169,7 +169,7 @@ A debug overlay shows the number of live coordinators, navigators, screens and v
 swift test   # unit tests, documentation examples and benchmarks, on macOS (about 10s)
 
 xcodebuild test -project Example/WaypointExample.xcodeproj -scheme WaypointExample \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'   # 30 UI flows, about 9 minutes
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'   # 31 UI flows, about 10 minutes
 ```
 
 Each UI test reads the overlay before and after a flow, and fails with the names of whatever is still alive. Run `xcodegen generate` in `Example/` only if you change `project.yml`.

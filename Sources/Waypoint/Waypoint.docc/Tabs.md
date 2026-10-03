@@ -32,7 +32,7 @@ TabHost(tabs) { tabs in
 }
 ```
 
-``TabHost`` holds the tabs weakly, and ``TabNavigator/tearDown()`` releases every tab's navigator. Together they make sure that when SwiftUI keeps a removed `TabView` around after a root switch, it keeps nothing of your flows. Even your own view holding the tabs strongly is then harmless.
+Always wrap the `TabView` in ``TabHost``. When the tabs are torn down (``TabNavigator/tearDown()``), `TabHost` empties itself while still on screen, so SwiftUI dismantles the `TabView` properly. Without it, some OS versions keep a removed `TabView`'s background tabs alive after every sign-out. The teardown also releases every tab's navigator, so even your own view holding the tabs is harmless.
 
 On iOS 17, which has no `Tab` API, use `.tabItem` and `.tag` the classic way:
 

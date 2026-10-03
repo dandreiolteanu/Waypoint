@@ -64,7 +64,7 @@ final class AppCoordinator {
 
 Two details matter:
 
-- **Tear the old root down before replacing it.** Pending awaits in it return `nil` and its coordinators' ``Coordinator/didFinish()`` runs immediately.
+- **Tear the old root down before replacing it.** Pending awaits in it return `nil`, its coordinators' ``Coordinator/didFinish()`` runs immediately, and a ``TabHost`` empties itself so SwiftUI can't keep the old tabs alive.
 - **Callbacks to the app coordinator capture it weakly** (`[weak self]`). The flows don't own the app.
 
 ## Show it

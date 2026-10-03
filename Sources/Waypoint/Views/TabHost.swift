@@ -2,8 +2,10 @@ import SwiftUI
 
 /// Builds your `TabView` from a ``TabNavigator``, holding it weakly.
 ///
-/// SwiftUI can keep a removed `TabView` alive for a while after a root switch. `TabHost` (with ``TabNavigator/tearDown()``)
-/// makes sure what it keeps is empty, so a signed-out user's tabs, coordinators and view models are freed.
+/// Use it for every `TabView` driven by a ``TabNavigator``. When the tabs are torn down (``TabNavigator/tearDown()``,
+/// on sign-out), `TabHost` renders nothing while it's still mounted, so SwiftUI dismantles the `TabView` properly.
+/// A `TabView` removed whole by a root switch can otherwise keep its background tabs' screens, view models and
+/// coordinators alive, on some OS versions indefinitely, piling up with every sign-out.
 ///
 /// ```swift
 /// TabHost(tabs) { tabs in
@@ -25,7 +27,10 @@ public struct TabHost<Tab: Hashable, Content: View>: View {
 
     /// Your tab view, while the tabs exist.
     public var body: some View {
-        if let tabs {
+        // Once the tabs are torn down, render nothing while this host is still mounted. SwiftUI then dismantles the
+        // TabView the normal way. Removed whole by a root switch instead, some OS versions keep its background tabs' last
+        // content (and the view models in it) alive indefinitely.
+        if let tabs, !tabs.isTornDown {
             content(tabs)
         }
     }

@@ -207,6 +207,25 @@ struct LifetimeTests {
         #expect(home.madeViewModels.liveCount == 1)
     }
 
+    @Test("Popping a deep stack and tearing down a tree scale linearly")
+    func linearScaling() {
+        func cost(_ count: Int) -> Duration {
+            let home = TestCoordinator()
+            let navigator = Navigator(root: home)
+            home.push((0..<count).map { .detail($0) })
+            return ContinuousClock().measure {
+                navigator.popToRoot()
+                navigator.tearDown()
+            }
+        }
+        _ = cost(500)   // warm up
+        let small = cost(1_000)
+        let large = cost(8_000)
+
+        // 8x the work: linear is about 8x the time, quadratic about 64x. Allow generous noise.
+        #expect(large < small * 24, "popToRoot + tearDown look superlinear: \(small) for 1,000 vs \(large) for 8,000")
+    }
+
     @Test("The lifetime tracker counts live objects by type")
     func tracker() {
         // GIVEN

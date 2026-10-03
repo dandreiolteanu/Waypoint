@@ -55,24 +55,15 @@ final class StackEntry: Hashable, Identifiable {
 
     /// - Parameter closingGroup: Every screen removed in the same change (a multi-screen pop, a dismissed tree).
     ///   The entry counts as closed once all of them have closed, because the one still animating is usually another entry's.
-    func markRemoved(closingWith closingGroup: [ScreenContent] = []) {
+    func markRemoved(closingWith closingGroup: ClosingGroup? = nil) {
         guard !isRemoved else { return }
         isRemoved = true
         let handlers = removalHandlers
         removalHandlers.removeAll()
         handlers.forEach { $0() }
+        let group = closingGroup ?? ClosingGroup(screens: [screen])
         screen.remove()
-        let group = closingGroup.contains { $0 === screen } ? closingGroup : closingGroup + [screen]
-        // The screens still animating retain `closing`, not this entry. If SwiftUI drops them without a disappearance,
-        // `closing` is freed with them, and so is any pending result, whose deinit then resumes the await.
-        let closing = self.closing
-        var remaining = group.count
-        for member in group {
-            member.onClosed {
-                remaining -= 1
-                if remaining == 0 { closing.fire() }
-            }
-        }
+        group.add(closing)
         if let owner, owner.anchor === self {
             owner.finishLifecycle()
         }
@@ -81,9 +72,45 @@ final class StackEntry: Hashable, Identifiable {
 
 }
 
+/// Every screen removed in one change, and the entries waiting for all of them to leave the screen.
+///
+/// The screens still animating retain the group (through their closed handlers), and the group retains the entries'
+/// watches. If SwiftUI drops those screens without a disappearance, the group is freed with them, and so is any pending
+/// result, whose deinit then resumes the await. One group per change keeps a large pop linear.
+@MainActor
+final class ClosingGroup {
+    private var remaining: Int
+    private var watches: [ClosingWatch] = []
+    private var isClosed: Bool
+
+    /// Creates the group, and starts listening to `screens`. Create it before removing any of them.
+    init(screens: [ScreenContent]) {
+        remaining = screens.count
+        isClosed = screens.isEmpty
+        for screen in screens {
+            screen.onClosed { [self] in
+                remaining -= 1
+                if remaining == 0 { close() }
+            }
+        }
+    }
+
+    func add(_ watch: ClosingWatch) {
+        if isClosed { watch.fire() } else { watches.append(watch) }
+    }
+
+    private func close() {
+        guard !isClosed else { return }
+        isClosed = true
+        let watches = self.watches
+        self.watches.removeAll()
+        watches.forEach { $0.fire() }
+    }
+}
+
 /// Handlers waiting for an entry, and the screens removed with it, to finish leaving the screen.
 @MainActor
-private final class ClosingWatch {
+final class ClosingWatch {
     private var handlers: [() -> Void] = []
     private var isClosed = false
 
