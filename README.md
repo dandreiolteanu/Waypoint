@@ -276,6 +276,7 @@ xcodebuild test -project WaypointExample.xcodeproj -scheme WaypointExample \
 ```
 
 Each UI test reads the example's lifetime overlay before and after a flow, and fails with the names of whatever is still alive.
+All 30 flows pass on iOS 18.6 and iOS 27.0 simulators.
 
 ## Repository
 
