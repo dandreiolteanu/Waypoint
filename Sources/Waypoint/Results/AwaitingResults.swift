@@ -37,7 +37,7 @@ extension Routing {
             guard let navigator = requireNavigator() else { return nil }
             let entry = makeEntry(for: makeRoute(callback), transition: .automatic)
             let presented = Navigator(rootEntry: entry, embedsInNavigationStack: style.embedsInNavigationStack)
-            navigator.present(presented, style: style, transition: transition)
+            navigator.present(presented, style: style, transition: transition, by: self)
             return (entry, presented)
         }
     }
@@ -70,7 +70,7 @@ extension Coordinator {
         await awaitResult { callback in
             guard let navigator = requireNavigator() else { return nil }
             let presented = Navigator(root: makeChild(callback), embedsInNavigationStack: style.embedsInNavigationStack)
-            navigator.present(presented, style: style, transition: transition)
+            navigator.present(presented, style: style, transition: transition, by: self)
             return (presented.root, presented)
         }
     }

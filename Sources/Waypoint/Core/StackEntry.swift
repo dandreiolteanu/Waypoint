@@ -16,6 +16,7 @@ public final class StackEntry: Hashable, Identifiable {
     /// What SwiftUI's path holds instead of the entry itself, so SwiftUI's retained copy of a popped path keeps nothing alive.
     let token: EntryToken
     private var removalHandlers: [() -> Void] = []
+    private let closing = ClosingWatch()
     private(set) var isRemoved = false
 
     init(route: AnyHashable, content: AnyView, owner: Coordinator?, transition: ScreenTransition = .automatic) {
@@ -46,23 +47,57 @@ public final class StackEntry: Hashable, Identifiable {
         removalHandlers.append(handler)
     }
 
-    /// Runs `handler` once the entry has been removed *and* its screen has finished leaving the screen.
-    /// That's after the pop or dismissal animation, or right away if the screen wasn't visible.
+    /// Runs `handler` once the entry has been removed *and* every screen that left with it has finished leaving the screen.
+    /// That's after the pop or dismissal animation, or right away if none of them was visible.
     func onClosed(_ handler: @escaping () -> Void) {
-        screen.onClosed(handler)
+        closing.add(handler)
     }
 
-    func markRemoved() {
+    /// - Parameter closingGroup: Every screen removed in the same change (a multi-screen pop, a dismissed tree).
+    ///   The entry counts as closed once all of them have closed, because the one still animating is usually another entry's.
+    func markRemoved(closingWith closingGroup: [ScreenContent] = []) {
         guard !isRemoved else { return }
         isRemoved = true
         let handlers = removalHandlers
         removalHandlers.removeAll()
         handlers.forEach { $0() }
         screen.remove()
+        let group = closingGroup.contains { $0 === screen } ? closingGroup : closingGroup + [screen]
+        // The screens still animating retain `closing`, not this entry. If SwiftUI drops them without a disappearance,
+        // `closing` is freed with them, and so is any pending result, whose deinit then resumes the await.
+        let closing = self.closing
+        var remaining = group.count
+        for member in group {
+            member.onClosed {
+                remaining -= 1
+                if remaining == 0 { closing.fire() }
+            }
+        }
         if let owner, owner.anchor === self {
             owner.finishLifecycle()
         }
         owner = nil
+    }
+
+}
+
+/// Handlers waiting for an entry, and the screens removed with it, to finish leaving the screen.
+@MainActor
+private final class ClosingWatch {
+    private var handlers: [() -> Void] = []
+    private var isClosed = false
+
+    func add(_ handler: @escaping () -> Void) {
+        guard !isClosed else { return handler() }
+        handlers.append(handler)
+    }
+
+    func fire() {
+        guard !isClosed else { return }
+        isClosed = true
+        let handlers = self.handlers
+        self.handlers.removeAll()
+        handlers.forEach { $0() }
     }
 }
 

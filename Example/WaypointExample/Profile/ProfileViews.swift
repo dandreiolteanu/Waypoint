@@ -133,10 +133,11 @@ struct EditNameView: View {
     }
 }
 
+/// Closes with SwiftUI's own `dismiss`, which Waypoint observes through the sheet binding. The awaiting coordinator gets `nil`.
 struct ColorPickerView: View {
     let selected: ProfileColor
     let onPick: (ProfileColor) -> Void
-    let onClose: () -> Void
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         ScrollView {
@@ -161,6 +162,6 @@ struct ColorPickerView: View {
         }
         .navigationTitle("Favorite color")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar { CloseButton(action: onClose) }
+        .toolbar { CloseButton { dismiss() } }
     }
 }

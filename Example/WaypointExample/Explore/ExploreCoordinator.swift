@@ -31,7 +31,7 @@ final class ExploreCoordinator: FlowCoordinator {
         case let .detents(demo):
             DetentDemoView(demo: demo, onClose: { self.dismissPresented() })
         case .controlledDetent:
-            ControlledDetentView(onSelect: { self.navigator?.presentation?.selectedDetent = $0 }, onClose: { self.dismissPresented() })
+            ControlledDetentView(onSelect: { self.presented?.selectedDetent = $0 }, onClose: { self.dismissPresented() })
         case .editor:
             EditorView(viewModel: EditorViewModel(navigation: self))
         case .cover:
@@ -94,7 +94,7 @@ extension ExploreCoordinator: LabNavigation {
 
 extension ExploreCoordinator: EditorNavigation {
     func setDismissLocked(_ isLocked: Bool) {
-        navigator?.presentation?.isInteractiveDismissDisabled = isLocked
+        presented?.isInteractiveDismissDisabled = isLocked
     }
 
     func closeEditor() {

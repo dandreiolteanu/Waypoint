@@ -29,12 +29,13 @@ extension Routing {
         navigator.setPath(base + routes.map { makeEntry(for: $0, transition: .automatic) })
     }
 
-    /// Presents `route` modally in a new navigator. The screen is built by this coordinator.
+    /// Presents `route` modally in a new navigator. The screen is built, and owned, by this coordinator.
+    /// So the screen closes itself with ``Coordinator/dismissPresented()`` (or SwiftUI's `dismiss`), and its detent is ``Coordinator/presented``.
     /// To push screens inside the presentation, present a child coordinator with ``Coordinator/present(child:as:transition:)`` instead.
     public func present(_ route: Route, as style: PresentationStyle = .sheet, transition: ScreenTransition = .automatic) {
         guard let navigator = requireNavigator() else { return }
         let presented = Navigator(rootEntry: makeEntry(for: route, transition: .automatic), embedsInNavigationStack: style.embedsInNavigationStack)
-        navigator.present(presented, style: style, transition: transition)
+        navigator.present(presented, style: style, transition: transition, by: self)
     }
 
     /// The routes of this coordinator's screens currently in its navigator, bottom first. Handy in tests.
@@ -58,7 +59,7 @@ extension Coordinator {
     /// Presents `child` modally with a stack of its own. The child is released once the presentation is dismissed.
     public func present<Child: Routing>(child: Child, as style: PresentationStyle = .sheet, transition: ScreenTransition = .automatic) {
         guard let navigator = requireNavigator() else { return }
-        navigator.present(Navigator(root: child, embedsInNavigationStack: style.embedsInNavigationStack), style: style, transition: transition)
+        navigator.present(Navigator(root: child, embedsInNavigationStack: style.embedsInNavigationStack), style: style, transition: transition, by: self)
     }
 
     // MARK: Closing
@@ -78,17 +79,28 @@ extension Coordinator {
         navigator?.pop(to: anchor)
     }
 
-    /// The modal presentation this coordinator's screens are in, if any. Write to it to change the detent, or to block swipe-to-dismiss.
+    // Two directions, two names:
+    // - `presentation` and `dismiss()` are about the modal this coordinator's *flow* lives in (it was presented with `present(child:)`).
+    // - `presented` and `dismissPresented()` are about what this coordinator *showed* on top of its flow, including a single route
+    //   shown with `present(_:)`. A screen in such a sheet is built by the presenting coordinator, so it closes itself with `dismissPresented()`.
+
+    /// The modal presentation this coordinator's flow is in, if any. Write to it to change the detent, or to block swipe-to-dismiss.
     public var presentation: Presentation? {
         navigator?.containingPresentation
     }
 
-    /// Dismisses the modal presentation this coordinator's screens are in.
+    /// What this coordinator's navigator is presenting right now, if anything. For a route shown with ``Routing/present(_:as:transition:)``,
+    /// this is how its coordinator moves the sheet's detent or locks dismissal.
+    public var presented: Presentation? {
+        navigator?.presentation
+    }
+
+    /// Dismisses the modal presentation this coordinator's flow is in. Does nothing for a flow that isn't presented.
     public func dismiss() {
         navigator?.dismiss()
     }
 
-    /// Dismisses whatever this coordinator's navigator is presenting.
+    /// Dismisses whatever this coordinator's navigator is presenting. Screens shown with ``Routing/present(_:as:transition:)`` close themselves with this.
     public func dismissPresented() {
         navigator?.dismissPresentation()
     }
@@ -99,7 +111,10 @@ extension Coordinator {
         navigator.close(anchor)
     }
 
+    /// The navigator to act on, or `nil` once this flow has finished.
+    /// A finished flow can still be alive (a `Task` it started holds it), but it must not navigate any more.
     func requireNavigator(function: StaticString = #function) -> Navigator? {
+        if isFinished { return nil }
         if let navigator, !navigator.isTornDown { return navigator }
         assert(hasStarted, "Waypoint: \(type(of: self)).\(function) called before the coordinator was started. Push, present, or make it a navigator's root first.")
         return nil

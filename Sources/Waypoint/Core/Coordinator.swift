@@ -43,7 +43,7 @@ open class Coordinator {
     open func didFinish() {}
 
     func attach(to navigator: Navigator, anchor: StackEntry) {
-        assert(self.navigator == nil || self.navigator === navigator, "Waypoint: \(type(of: self)) was started twice. Create a new coordinator per flow.")
+        assert(!hasStarted, "Waypoint: \(type(of: self)) was started twice. Create a new coordinator per flow.")
         self.navigator = navigator
         self.anchor = anchor
         hasStarted = true
@@ -52,6 +52,8 @@ open class Coordinator {
     func finishLifecycle() {
         guard !isFinished else { return }
         isFinished = true
+        // Whatever this flow presented goes with it, e.g. a sheet a pushed child opened before the user popped back past it.
+        navigator?.dismissPresentations(by: self)
         didFinish()
     }
 }

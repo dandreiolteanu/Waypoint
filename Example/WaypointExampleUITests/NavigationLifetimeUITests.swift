@@ -313,6 +313,18 @@ final class ResultUITests: WaypointUITestCase {
         assertReturns(to: baseline)
     }
 
+    func testSwiftUIEnvironmentDismissIsObserved() {
+        launch()
+        tapTab("Profile")
+        let baseline = settledCounts()
+
+        tap("profile.pickColor")
+        tap("close")
+
+        XCTAssertTrue(app.staticTexts["Last result: Pick color: dismissed"].waitForExistence(timeout: 5))
+        assertReturns(to: baseline)
+    }
+
     func testPushedChildFlowReturnsValueAndPopsAllSteps() {
         launch()
         tapTab("Explore")

@@ -28,7 +28,7 @@ final class ProfileCoordinator: FlowCoordinator {
         case let .editName(current, onSave):
             EditNameView(viewModel: EditNameViewModel(name: current, onSave: onSave))
         case let .colorPicker(current, onPick):
-            ColorPickerView(selected: current, onPick: { onPick($0) }, onClose: { self.dismissPresented() })
+            ColorPickerView(selected: current, onPick: { onPick($0) })
         }
     }
 

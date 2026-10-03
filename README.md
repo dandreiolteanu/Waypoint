@@ -147,15 +147,24 @@ present(.photo(id), as: .fullScreenCover(embedsInNavigationStack: false), transi
 present(child: CheckoutCoordinator(cart: cart), as: .sheet)   // a flow with its own stack
 ```
 
-You can change things from inside the presented flow after it is on screen:
+Both are observable after the sheet is on screen. Each direction has its own name:
 
 ```swift
-presentation?.selectedDetent = .large                  // move the sheet
-presentation?.isInteractiveDismissDisabled = isDirty   // lock swipe-to-dismiss while editing
+// Inside a presented child flow: the modal *I* live in
+presentation?.selectedDetent = .large
+presentation?.isInteractiveDismissDisabled = isDirty
+dismiss()
+
+// From the coordinator that showed something: the modal *I presented*, including a single route from present(_:)
+presented?.selectedDetent = .large
+dismissPresented()
 ```
 
 Presenting while something is already presented replaces it. The new presentation waits for the old one's dismissal animation to finish, because SwiftUI silently drops a presentation that starts mid-dismissal.
-Use `dismiss()` for the presentation you're in, `dismissPresented()` for what you presented, and `navigator?.dismissAll()` to clear the whole stack of sheets.
+Use `dismiss()` for the presentation your flow is in, and `dismissPresented()` for what you presented.
+A route shown with `present(_:)` is a screen built by the presenter, so it closes with `dismissPresented()` (or SwiftUI's `dismiss`).
+`navigator?.dismissAll()` clears the whole stack of sheets.
+When a flow finishes, the sheets it presented go with it. A presentation still queued behind a dismissal is cancelled by any dismiss.
 
 ### 4. Pushing, and pushed child flows
 
@@ -236,8 +245,28 @@ Show `LifetimeTracker.liveCount(of:)` in a debug overlay, or assert on it in UI 
 - SwiftUI's own `@Environment(\.dismiss)`, the back button, swipe-back and swipe-down all work. They write through the same bindings, so Waypoint sees and handles them.
 - Don't use `NavigationLink(value:)` inside a hosted stack. The path holds Waypoint entries, so navigate through the coordinator instead.
 
+## Known limitations
+
+- **Presenting while an alert from the same navigator is on screen** can be dropped by UIKit, and SwiftUI gives no "alert finished dismissing" signal to queue on. Answer or replace the alert first. Alerts requested while a *sheet* animates out are queued automatically.
+- **Zoom transitions** need iOS 18. On iOS 17 they fall back to the default push or cover.
+- **`NavigationLink(value:)`** can't drive a hosted stack. Navigate through the coordinator.
+- **Interactive dismissal of a zoom-pushed screen** (swipe down on it, iOS 18) works and is tracked like any pop, but it surprises users who expect only swipe-back. Use `.automatic` where that matters.
+
+## How it compares
+
+| | Waypoint | Typical coordinator libraries |
+| --- | --- | --- |
+| Who owns child coordinators | The screens they put on screen. Freed when popped or dismissed, however that happens. | A `children` array, pruned by hand, which leaks when the user swipes away. |
+| Swipe-back and swipe-down | Read from SwiftUI's own bindings. | Often missed, or caught through `onDisappear` heuristics. |
+| Results | `await` returning `Value?`, exactly once, after the screen is gone. | Delegates, closures, or `Any` payloads. |
+| Sheet after sheet | Queued until the dismissal finishes. | `asyncAfter(0.5)` or a silently dropped presentation. |
+| Detents | Every kind, plus a selected detent the coordinator can read and write. | Fixed at present time, if supported at all. |
+| Zoom | Push and present, with namespaces handled. | Left to the app. |
+| Globals | None. Every scene owns its own tree. | Shared stores keyed by type. |
+| Proof | Unit tests, benchmarks, and UI tests that count live objects after every flow. | Usually none for memory. |
+
 ## Repository
 
-- `Sources/Waypoint`: the library (about 700 lines).
+- `Sources/Waypoint`: the library (about 1,000 lines with doc comments, and no dependencies).
 - `Tests/WaypointTests`: Swift Testing suites for stack, presentation, results, tabs and memory, plus XCTest benchmarks.
 - `Example/`: an app covering every case above, with UI tests that walk each flow and assert that every object it created is freed. Run `xcodegen generate` in `Example/`, then open `WaypointExample.xcodeproj`.

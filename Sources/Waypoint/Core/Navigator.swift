@@ -21,6 +21,8 @@ public final class Navigator {
     @ObservationIgnored private var queuedPresentation: Presentation?
     /// A presentation that has been dismissed and is still animating out.
     @ObservationIgnored private var dismissingPresentation: Presentation?
+    /// An alert waiting for a dismissal animation to finish. UIKit refuses to present one mid-dismissal.
+    @ObservationIgnored private var queuedAlert: AlertRequest?
     @ObservationIgnored private(set) var isTornDown = false
 
     /// A navigator whose root is a plain view, with no coordinator behind it.
@@ -98,7 +100,8 @@ public final class Navigator {
             removed = path.filter { !kept.contains(ObjectIdentifier($0)) }
         }
         path = newPath
-        removed.reversed().forEach { $0.markRemoved() }
+        let closingGroup = removed.map(\.screen)
+        removed.reversed().forEach { $0.markRemoved(closingWith: closingGroup) }
     }
 
     /// SwiftUI's side of `setPath`. The tokens map back to this stack's entries. Tokens of entries that are no longer here are ignored.
@@ -120,31 +123,54 @@ public final class Navigator {
 
     /// Presents `navigator` modally. If something is already presented, it's dismissed first,
     /// and the new presentation follows once the old one has animated out. SwiftUI drops a presentation started mid-dismissal.
-    func present(_ navigator: Navigator, style: PresentationStyle, transition: ScreenTransition) {
+    func present(_ navigator: Navigator, style: PresentationStyle, transition: ScreenTransition, by coordinator: Coordinator? = nil) {
         guard !isTornDown else { return navigator.tearDown() }
         let newPresentation = Presentation(navigator: navigator, style: style, transition: transition)
+        newPresentation.presentedBy = coordinator
         navigator.presenter = self
         if presentation == nil && dismissingPresentation == nil {
             presentation = newPresentation
             return
         }
-        queuedPresentation?.navigator.tearDown()
+        cancelQueuedPresentation()
         queuedPresentation = newPresentation
-        if presentation != nil {
-            dismissPresentation()
+        if let presentation {
+            endPresentation(presentation)
         }
     }
 
     /// Dismisses whatever this navigator presents, including any presentations stacked on top of it.
+    /// A presentation still waiting for its turn is cancelled too.
     public func dismissPresentation() {
+        cancelQueuedPresentation()
         guard let presentation else { return }
         endPresentation(presentation)
     }
 
-    /// Dismisses this navigator, when it's presented.
+    /// Dismisses this navigator, when it's presented, or cancels it while it's still waiting to be presented.
     public func dismiss() {
-        guard let presenter, presenter.presentation?.navigator === self else { return }
-        presenter.dismissPresentation()
+        guard let presenter else { return }
+        if presenter.presentation?.navigator === self {
+            presenter.dismissPresentation()
+        } else if presenter.queuedPresentation?.navigator === self {
+            presenter.cancelQueuedPresentation()
+        }
+    }
+
+    /// Dismisses whatever `coordinator` presented from this navigator, once the coordinator has finished.
+    func dismissPresentations(by coordinator: Coordinator) {
+        if queuedPresentation?.presentedBy === coordinator {
+            cancelQueuedPresentation()
+        }
+        if let presentation, presentation.presentedBy === coordinator {
+            endPresentation(presentation)
+        }
+    }
+
+    private func cancelQueuedPresentation() {
+        guard let queued = queuedPresentation else { return }
+        queuedPresentation = nil
+        queued.navigator.tearDown()
     }
 
     /// Dismisses every presentation, from the root navigator of this presentation tree down.
@@ -164,6 +190,7 @@ public final class Navigator {
     func presentationDidFinishDismissing() {
         dismissingPresentation = nil
         showQueuedPresentation()
+        showQueuedAlert()
     }
 
     private func endPresentation(_ ending: Presentation) {
@@ -174,6 +201,7 @@ public final class Navigator {
         ending.navigator.tearDown()
         if dismissingPresentation == nil {
             showQueuedPresentation()
+            showQueuedAlert()
         }
     }
 
@@ -185,11 +213,25 @@ public final class Navigator {
 
     // MARK: - Alerts
 
-    /// Shows `request`. An alert that is already up resolves with `nil` and is replaced.
+    /// Shows `request`. An alert that is already up (or waiting) resolves with `nil` and is replaced.
+    /// While a presentation is animating out, the alert waits for it, because UIKit refuses to present mid-dismissal.
     func show(_ request: AlertRequest) {
         guard !isTornDown else { return request.finish(choosing: nil) }
+        queuedAlert?.finish(choosing: nil)
+        queuedAlert = nil
+        if dismissingPresentation != nil {
+            queuedAlert = request
+            return
+        }
         alertRequest?.finish(choosing: nil)
         alertRequest = request
+    }
+
+    private func showQueuedAlert() {
+        guard let alert = queuedAlert else { return }
+        queuedAlert = nil
+        // A presentation shown from the queue is now on top, so the alert goes there.
+        topmost.show(alert)
     }
 
     func finishAlert(_ request: AlertRequest, choosing index: Int?) {
@@ -208,15 +250,27 @@ public final class Navigator {
     /// Marks every entry removed, top first. That resolves pending results with `nil` and finishes coordinators.
     /// The objects themselves are freed when the last reference to this navigator goes.
     public func tearDown() {
+        tearDown(closingWith: subtreeScreens())
+    }
+
+    /// `closingGroup` holds every screen leaving with this tree. An await on any entry in the tree resumes only once they've all left.
+    private func tearDown(closingWith closingGroup: [ScreenContent]) {
         guard !isTornDown else { return }
         isTornDown = true
-        alertRequest?.finish(choosing: nil)
+        for alert in [alertRequest, queuedAlert].compactMap(\.self) { alert.finish(choosing: nil) }
         alertRequest = nil
-        presentation?.navigator.tearDown()
-        queuedPresentation?.navigator.tearDown()
+        queuedAlert = nil
+        presentation?.navigator.tearDown(closingWith: closingGroup)
+        queuedPresentation?.navigator.tearDown(closingWith: closingGroup)
         queuedPresentation = nil
-        path.reversed().forEach { $0.markRemoved() }
-        root.markRemoved()
+        path.reversed().forEach { $0.markRemoved(closingWith: closingGroup) }
+        root.markRemoved(closingWith: closingGroup)
+    }
+
+    private func subtreeScreens() -> [ScreenContent] {
+        entries.map(\.screen)
+            + (presentation?.navigator.subtreeScreens() ?? [])
+            + (queuedPresentation?.navigator.subtreeScreens() ?? [])
     }
 }
 
