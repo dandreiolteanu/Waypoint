@@ -37,6 +37,7 @@ A Waypoint stack's path holds Waypoint's own entries. Navigate through the coord
 | --- | --- |
 | `NavigationStack` keeps the last popped destination (and its path element) until the next navigation. | The path holds lightweight tokens. A removed screen's view is dropped once it disappears, which releases its view model. |
 | A presentation started during another's dismissal animation is silently dropped. | It's queued until the first one reports it's gone. |
+| A presentation started from a sheet that's still animating in is silently dropped (stacking sheets from a deep link). | It's held until that sheet has finished presenting, detected with a view controller's `viewDidAppear`, which fires after the transition. Queued alerts wait the same way. |
 | Navigating right after a screen closes can collide with its animation. | Awaits resume only after every closing screen is off screen. |
 | A `TabView` removed by a root switch can keep its background tabs' content alive (on iOS 27, indefinitely, growing with every sign-out). | Tearing the tabs down makes ``TabHost`` render nothing while still mounted, so SwiftUI dismantles the `TabView` properly. Hosts also hold state weakly, and torn-down trees are empty. |
 | A collapsed `NavigationSplitView` (iPhone) keeps the last detail it popped until the next selection. | The detail's navigator and screens are freed at once; SwiftUI releases the rest on the next selection. It never piles up. |

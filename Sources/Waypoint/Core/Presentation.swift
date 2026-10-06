@@ -24,9 +24,11 @@ public final class Presentation: Identifiable {
     /// Set once the presented content has appeared. After that, a dismissal has to wait for UIKit's
     /// dismissal animation to finish before anything else can be presented from the same navigator.
     @ObservationIgnored var hasAppeared = false
+    /// Set once the presentation animation has finished. Only then can the presented navigator present on top of it.
+    @ObservationIgnored var isFullyPresented = false
     /// The coordinator that asked for this presentation. When that coordinator finishes, the presentation goes with it.
     @ObservationIgnored weak var presentedBy: Coordinator?
-    /// An alert waiting for this presentation to appear. UIKit can't present it from a sheet that isn't in the window yet.
+    /// An alert waiting for this presentation to finish appearing. UIKit can't present it from a sheet still animating in.
     @ObservationIgnored var alertOnAppear: AlertRequest?
 
     init(navigator: Navigator, style: PresentationStyle, transition: ScreenTransition) {
@@ -53,17 +55,25 @@ public final class Presentation: Identifiable {
     /// The presentation's identity.
     nonisolated public var id: ObjectIdentifier { ObjectIdentifier(self) }
 
+    /// The presentation animation finished: it's now safe to present on top of it.
+    func didFinishPresenting() {
+        hasAppeared = true
+        isFullyPresented = true
+        navigator.showQueuedPresentation()
+        if let alert = alertOnAppear {
+            alertOnAppear = nil
+            navigator.show(alert)
+        }
+    }
+
     /// Popovers have no `onDismiss`, so their content disappearing is the signal that the dismissal finished.
     func didDisappear() {
         guard style.kind == .popover else { return }
         navigator.presenter?.presentationDidFinishDismissing()
     }
 
+    /// The presented content was inserted. Its presentation animation is still running.
     func didAppear() {
         hasAppeared = true
-        if let alert = alertOnAppear {
-            alertOnAppear = nil
-            navigator.show(alert)
-        }
     }
 }

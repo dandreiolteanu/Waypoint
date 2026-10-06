@@ -31,6 +31,18 @@ class WaypointUITestCase: XCTestCase {
         app = XCUIApplication()
     }
 
+    /// Every failure carries a screenshot and the live object names, for triage from the result bundle.
+    override func record(_ issue: XCTIssue) {
+        var issue = issue
+        if let app {
+            issue.add(XCTAttachment(screenshot: app.screenshot()))
+            if lifetime.exists {
+                issue.add(XCTAttachment(string: lifetime.label))
+            }
+        }
+        super.record(issue)
+    }
+
     func launch(signedIn: Bool = true) {
         app.launchArguments = signedIn ? ["-signedIn"] : []
         app.launch()
@@ -99,6 +111,13 @@ class WaypointUITestCase: XCTestCase {
             }
         }
         XCTAssertTrue(element.exists, "Missing \(identifier)", file: file, line: line)
+        // A row under the translucent tab bar reports as hittable, but the tap lands on the bar. Scroll it clear first.
+        let tabBar = app.tabBars.firstMatch
+        if tabBar.exists {
+            for _ in 0..<4 where element.frame.maxY > tabBar.frame.minY - 8 && element.frame.minY > 0 {
+                app.swipeUp(velocity: .slow)
+            }
+        }
         element.tap()
     }
 

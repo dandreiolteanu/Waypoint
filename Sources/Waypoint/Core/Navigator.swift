@@ -39,6 +39,9 @@ public final class Navigator {
     /// An alert waiting for a dismissal animation to finish. UIKit refuses to present one mid-dismissal.
     @ObservationIgnored private var queuedAlert: AlertRequest?
     @ObservationIgnored private(set) var isTornDown = false
+    /// Set once any ``NavigationHost`` has appeared in this process. Without one (unit tests) there are no animations
+    /// to wait for, so presentations are never held back.
+    static var hasUserInterface = false
     /// How many on-screen views anchor popovers, by id. A popover whose anchor isn't on screen is shown as a sheet.
     @ObservationIgnored private var popoverSources: [AnyHashable: Int] = [:]
 
@@ -198,6 +201,13 @@ public final class Navigator {
         let newPresentation = Presentation(navigator: navigator, style: resolved(style), transition: transition)
         newPresentation.presentedBy = coordinator
         navigator.presenter = self
+        if !isReadyToPresent {
+            // This navigator's own sheet is still on its way in. UIKit drops a presentation from a controller that
+            // isn't in the window yet, so it waits until that sheet has appeared (several stacked at once, by a deep link).
+            cancelQueuedPresentation()
+            queuedPresentation = newPresentation
+            return
+        }
         if presentation == nil && dismissingPresentation == nil {
             presentation = newPresentation
             return
@@ -296,7 +306,14 @@ public final class Navigator {
         }
     }
 
-    private func showQueuedPresentation() {
+    /// Whether this navigator can present right away. A presented navigator is ready once its own sheet has finished
+    /// animating in. This holds even for a tree that has never been on screen (a deep link into a tab not shown yet).
+    private var isReadyToPresent: Bool {
+        guard presenter != nil, Navigator.hasUserInterface else { return true }
+        return containingPresentation?.isFullyPresented == true
+    }
+
+    func showQueuedPresentation() {
         guard presentation == nil, let queued = queuedPresentation else { return }
         queuedPresentation = nil
         presentation = queued
@@ -323,7 +340,7 @@ public final class Navigator {
         queuedAlert = nil
         // A presentation shown from the queue is now on top, so the alert goes there, once that sheet is actually up.
         let target = topmost
-        if let presentation = target.containingPresentation, !presentation.hasAppeared {
+        if let presentation = target.containingPresentation, !presentation.isFullyPresented {
             presentation.alertOnAppear = alert
         } else {
             target.show(alert)

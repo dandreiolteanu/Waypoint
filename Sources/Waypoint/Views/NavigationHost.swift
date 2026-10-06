@@ -49,6 +49,7 @@ public struct NavigationHost: View {
                 .environment(\.navigatorReference, NavigatorReference(navigator: navigator))
                 .modifier(PresentationModifier(navigator: navigator, namespace: namespace))
                 .modifier(AlertModifier(navigator: navigator))
+                .onAppear { Navigator.hasUserInterface = true }
         }
     }
 
@@ -178,6 +179,7 @@ struct PresentedContent: View {
                 .zoomTransition(sourceID: presentation.transition.zoomSourceID, in: namespace)
                 .onAppear { [weak presentation] in presentation?.didAppear() }
                 .onDisappear { [weak presentation] in presentation?.didDisappear() }
+                .background(PresentationCompletionProbe { [weak presentation] in presentation?.didFinishPresenting() })
         }
     }
 }

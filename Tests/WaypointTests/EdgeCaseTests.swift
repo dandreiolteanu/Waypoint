@@ -323,10 +323,43 @@ struct EdgeCaseTests {
 
         // THEN
         #expect(next.navigator.alertRequest == nil)
-        next.didAppear()
+        next.didFinishPresenting()
         let request = try #require(next.navigator.alertRequest)
         next.navigator.finishAlert(request, choosing: 0)
         #expect(await task.value == true)
+    }
+
+    @Test("A hosted, presented navigator holds its presentations until its own sheet has appeared")
+    func stackedPresentationsWaitForEachSheet() throws {
+        // GIVEN: a user interface, as in an app
+        Navigator.hasUserInterface = true
+        defer { Navigator.hasUserInterface = false }
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        let first = ChildFlowCoordinator()
+        home.presentFlow(first)
+        let second = ChildFlowCoordinator()
+
+        // WHEN: the first sheet presents before it has appeared
+        first.presentFlow(second)
+
+        // THEN
+        let firstSheet = try #require(navigator.presentation)
+        let firstNavigator = try #require(first.navigator)
+        #expect(firstNavigator.presentation == nil)
+
+        // WHEN: inserted, but still animating in
+        firstSheet.didAppear()
+
+        // THEN
+        #expect(firstNavigator.presentation == nil)
+
+        // WHEN: the presentation animation finishes
+        firstSheet.didFinishPresenting()
+
+        // THEN
+        #expect(firstNavigator.presentation?.route(as: ChildFlowCoordinator.Route.self) == .step(1))
+        #expect(second.navigator?.presenter === firstNavigator)
     }
 
     private func settle() async {
