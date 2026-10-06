@@ -2,6 +2,7 @@ import SwiftUI
 import Waypoint
 
 /// Zoom transitions: grid → detail is a zoom push, detail → viewer is a zoom full-screen cover, and comments are a sheet with detents.
+/// The Feed tab shows every photo; each album in the Albums tab reuses this flow for its own photos.
 @MainActor
 final class FeedCoordinator: FlowCoordinator {
     enum Route: Hashable {
@@ -18,12 +19,20 @@ final class FeedCoordinator: FlowCoordinator {
         case hero(Int)
     }
 
+    private let title: String
+    private let photos: [Photo]
+
+    init(title: String = "Feed", photos: [Photo] = PhotoLibrary.all) {
+        self.title = title
+        self.photos = photos
+    }
+
     var initialRoute: Route { .grid }
 
     func destination(for route: Route) -> some View {
         switch route {
         case .grid:
-            FeedGridView(photos: PhotoLibrary.all, onSelect: { photo in
+            FeedGridView(title: title, photos: photos, onSelect: { photo in
                 self.showPhoto(id: photo.id, transition: .zoom(sourceID: ZoomSource.grid(photo.id)))
             })
         case let .photo(id):
@@ -43,6 +52,12 @@ final class FeedCoordinator: FlowCoordinator {
 
     func showPhoto(id: Int, transition: ScreenTransition) {
         push(.photo(id: id), transition: transition)
+    }
+
+    func open(_ link: FeedLink) {
+        switch link {
+        case let .photo(id): showPhoto(id: id, transition: .automatic)
+        }
     }
 }
 

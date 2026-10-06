@@ -2,6 +2,7 @@ import SwiftUI
 import Waypoint
 
 struct FeedGridView: View {
+    let title: String
     let photos: [Photo]
     let onSelect: (Photo) -> Void
 
@@ -22,7 +23,7 @@ struct FeedGridView: View {
             }
             .padding(.horizontal, 16)
         }
-        .navigationTitle("Feed")
+        .navigationTitle(title)
     }
 }
 

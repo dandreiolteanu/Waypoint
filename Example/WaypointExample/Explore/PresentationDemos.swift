@@ -45,6 +45,53 @@ struct ControlledDetentView: View {
     }
 }
 
+// MARK: - iPad
+
+struct PopoverInfoView: View {
+    let everywhere: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Popover", systemImage: "bubble.middle.top").font(.headline)
+            Text(everywhere
+                ? "This stays a popover even on iPhone (compactAdaptation: .popover). Tap outside to dismiss."
+                : "A popover on iPad. In compact width it adapts to a medium sheet. Tap outside or swipe down to dismiss.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(20)
+        .frame(idealWidth: 320)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("popoverInfo")
+    }
+}
+
+struct SizedSheetView: View {
+    let demo: SheetSizingDemo
+    let onClose: () -> Void
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "ipad").font(.system(size: 44)).foregroundStyle(.tint)
+            Text(demo.title).font(.title2.bold())
+            Text("presentationSizing(.\(demo.rawValue)) shapes the floating sheet on iPad. On iPhone every sheet is full width.")
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+            Button("Close", action: onClose)
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("close")
+        }
+        .padding(24)
+        // A fitted sheet takes the content's ideal size, so give it one.
+        .frame(idealWidth: 440, idealHeight: 320)
+        .navigationTitle(demo.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("sizedSheet")
+    }
+}
+
 // MARK: - Editor
 
 @MainActor

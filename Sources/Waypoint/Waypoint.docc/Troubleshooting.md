@@ -39,6 +39,7 @@ A Waypoint stack's path holds Waypoint's own entries. Navigate through the coord
 | A presentation started during another's dismissal animation is silently dropped. | It's queued until the first one reports it's gone. |
 | Navigating right after a screen closes can collide with its animation. | Awaits resume only after every closing screen is off screen. |
 | A `TabView` removed by a root switch can keep its background tabs' content alive (on iOS 27, indefinitely, growing with every sign-out). | Tearing the tabs down makes ``TabHost`` render nothing while still mounted, so SwiftUI dismantles the `TabView` properly. Hosts also hold state weakly, and torn-down trees are empty. |
+| A collapsed `NavigationSplitView` (iPhone) keeps the last detail it popped until the next selection. | The detail's navigator and screens are freed at once; SwiftUI releases the rest on the next selection. It never piles up. |
 | An alert's `isPresented` can be set to `false` before the tapped button's action runs. | The button's choice wins. |
 | A zoom must wrap the outermost presented view, and needs a namespace shared with its source. | Every host provides a namespace, and the zoom wraps the presented content, navigation stack included. |
 | Zoomed screens can be dismissed by swiping down. | Tracked like any other pop or dismissal. For a cover, `.fullScreenCover(isInteractiveDismissDisabled: true)` turns the gesture off; for a push, use `.automatic`. |

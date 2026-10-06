@@ -9,6 +9,7 @@ final class ProfileCoordinator: FlowCoordinator {
         case profile
         case editName(current: String, onSave: Callback<String>)
         case colorPicker(current: ProfileColor, onPick: Callback<ProfileColor>)
+        case links
     }
 
     private let session: SessionStore
@@ -29,7 +30,27 @@ final class ProfileCoordinator: FlowCoordinator {
             EditNameView(viewModel: EditNameViewModel(name: current, onSave: onSave))
         case let .colorPicker(current, onPick):
             ColorPickerView(selected: current, onPick: { onPick($0) })
+        case .links:
+            DeepLinksView()
         }
+    }
+
+    // MARK: Deep links
+
+    func open(_ link: ProfileLink) async {
+        switch link {
+        case let .settings(section):
+            showSettings(section: section)
+        case .pickColor:
+            await pickAndSaveColor()
+        }
+    }
+
+    /// A link can start a flow that returns a value, like any other caller: await it, then act on the result.
+    private func pickAndSaveColor() async {
+        guard var user = session.user, let color = await pickColor(current: user.favoriteColor) else { return }
+        user.favoriteColor = color
+        session.update(user)
     }
 
     func showSettings(section: SettingsCoordinator.Route?) {
@@ -48,5 +69,9 @@ extension ProfileCoordinator: ProfileNavigation {
 
     func showSettings() {
         showSettings(section: nil)
+    }
+
+    func showLinks() {
+        push(.links)
     }
 }

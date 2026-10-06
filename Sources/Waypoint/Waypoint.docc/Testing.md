@@ -78,4 +78,4 @@ Without SwiftUI, nothing is ever "on screen", so awaits resume as soon as the sc
 
 ## Leaks, in UI tests
 
-Unit tests prove the navigation state is right. Only real SwiftUI proves the objects are freed, because SwiftUI keeps some views longer than you'd think. Register view models with ``LifetimeTracker``, show ``LifetimeTracker/liveCount(of:)`` somewhere a UI test can read it, and assert the counts return to their starting values after each flow. The example app's overlay and UI tests do exactly this, for 31 flows.
+Unit tests prove the navigation state is right. Only real SwiftUI proves the objects are freed, because SwiftUI keeps some views longer than you'd think. Register view models with ``LifetimeTracker``, show ``LifetimeTracker/liveCount(of:)`` somewhere a UI test can read it, and assert the counts return to their starting values after each flow. The example app's overlay and UI tests do exactly this, for 40 flows, on iPhone and iPad.

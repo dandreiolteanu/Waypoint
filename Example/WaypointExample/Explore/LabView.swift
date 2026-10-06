@@ -13,6 +13,8 @@ protocol LabNavigation: AnyObject {
     func presentCardSheet(_ index: Int)
     func presentCardCover(_ index: Int)
     func runWizard() async -> String?
+    func showPopover(everywhere: Bool)
+    func showSized(_ demo: SheetSizingDemo)
 }
 
 @MainActor
@@ -35,6 +37,8 @@ final class LabViewModel {
     func pushCard(_ index: Int) { navigation.pushCard(index) }
     func presentCardSheet(_ index: Int) { navigation.presentCardSheet(index) }
     func presentCardCover(_ index: Int) { navigation.presentCardCover(index) }
+    func showPopover(everywhere: Bool) { navigation.showPopover(everywhere: everywhere) }
+    func showSized(_ demo: SheetSizingDemo) { navigation.showSized(demo) }
 
     func runWizard() async {
         wizardResult = await navigation.runWizard() ?? "Cancelled (popped before finishing)"
@@ -78,6 +82,31 @@ struct LabView: View {
                 .accessibilityIdentifier("lab.replace")
             }
 
+            Section {
+                PopoverRow(
+                    title: "Popover, sheet on iPhone",
+                    subtitle: ".popover(from:) adapts in compact width",
+                    source: PopoverSource.adaptive,
+                    action: { viewModel.showPopover(everywhere: false) }
+                )
+                .accessibilityIdentifier("lab.popover")
+                PopoverRow(
+                    title: "Popover everywhere",
+                    subtitle: "compactAdaptation: .popover",
+                    source: PopoverSource.everywhere,
+                    action: { viewModel.showPopover(everywhere: true) }
+                )
+                .accessibilityIdentifier("lab.popoverEverywhere")
+                ForEach(SheetSizingDemo.allCases) { demo in
+                    DemoRow(title: demo.title, subtitle: "sheet(sizing: .\(demo.rawValue)): visible on iPad", systemImage: "ipad") {
+                        viewModel.showSized(demo)
+                    }
+                    .accessibilityIdentifier("lab.sizing.\(demo.rawValue)")
+                }
+            } header: {
+                Text("iPad")
+            }
+
             Section("Zoom") {
                 CardRow(title: "Push", source: ExploreCoordinator.CardSource.push, onTap: viewModel.pushCard)
                 CardRow(title: "Sheet", source: ExploreCoordinator.CardSource.sheet, onTap: viewModel.presentCardSheet)
@@ -98,6 +127,35 @@ struct LabView: View {
             }
         }
         .navigationTitle("Explore")
+    }
+}
+
+/// A row whose trailing icon anchors a popover. The popover points at the icon on iPad.
+private struct PopoverRow: View {
+    let title: String
+    let subtitle: String
+    let source: PopoverSource
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                Image(systemName: "bubble.middle.top")
+                    .font(.title3)
+                    .frame(width: 32)
+                    .foregroundStyle(.tint)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.body.weight(.medium))
+                    Text(subtitle).font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "info.circle")
+                    .foregroundStyle(.tint)
+                    .popoverSource(id: source)
+            }
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
     }
 }
 

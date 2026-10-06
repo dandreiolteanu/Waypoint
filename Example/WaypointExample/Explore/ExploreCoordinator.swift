@@ -14,6 +14,8 @@ final class ExploreCoordinator: FlowCoordinator {
         case replaceable
         case card(Int)
         case zoomedCard(Int)
+        case popoverInfo(everywhere: Bool)
+        case sized(SheetSizingDemo)
     }
 
     enum CardSource: Hashable {
@@ -23,6 +25,9 @@ final class ExploreCoordinator: FlowCoordinator {
     }
 
     var initialRoute: Route { .lab }
+
+    /// Set while the editor sheet holds a draft. Deep links ask before throwing it away.
+    private var hasUnsavedEditorChanges = false
 
     func destination(for route: Route) -> some View {
         switch route {
@@ -43,7 +48,35 @@ final class ExploreCoordinator: FlowCoordinator {
         case let .zoomedCard(index):
             CardDetailView(index: index)
                 .toolbar { CloseButton { self.dismissPresented() } }
+        case let .popoverInfo(everywhere):
+            PopoverInfoView(everywhere: everywhere)
+        case let .sized(demo):
+            SizedSheetView(demo: demo, onClose: { self.dismissPresented() })
         }
+    }
+
+    // MARK: Deep links
+
+    func open(_ link: ExploreLink) {
+        switch link {
+        case let .nestedSheets(depth): showNestedSheets(depth: depth)
+        case .editor: showEditor()
+        }
+    }
+
+    /// Asked before a deep link takes the user somewhere else. With a draft in the editor, the user decides.
+    /// The alert shows on top of the editor sheet, because alerts go to the topmost presentation.
+    func confirmLeavingUnsavedWork() async -> Bool {
+        guard hasUnsavedEditorChanges else { return true }
+        let leave = await confirm(
+            "Discard your draft?",
+            message: "A link wants to open another screen.",
+            confirmTitle: "Discard and open",
+            role: .destructive,
+            cancelTitle: "Keep editing"
+        )
+        if leave { hasUnsavedEditorChanges = false }
+        return leave
     }
 
     func showNestedSheets(depth: Int) {
@@ -55,6 +88,18 @@ final class ExploreCoordinator: FlowCoordinator {
 }
 
 extension ExploreCoordinator: LabNavigation {
+    func showPopover(everywhere: Bool) {
+        present(
+            .popoverInfo(everywhere: everywhere),
+            as: .popover(from: everywhere ? PopoverSource.everywhere : PopoverSource.adaptive, compactAdaptation: everywhere ? .popover : .sheet, detents: [.medium])
+        )
+    }
+
+    func showSized(_ demo: SheetSizingDemo) {
+        // A NavigationStack has no ideal size, so a fitted sheet shows its content without one.
+        present(.sized(demo), as: .sheet(sizing: demo.sizing, embedsInNavigationStack: demo != .fitted))
+    }
+
     func showDetents(_ demo: DetentDemo) {
         present(.detents(demo), as: .sheet(detents: demo.detents, initialDetent: demo.initialDetent, dragIndicator: .visible))
     }
@@ -94,11 +139,35 @@ extension ExploreCoordinator: LabNavigation {
 
 extension ExploreCoordinator: EditorNavigation {
     func setDismissLocked(_ isLocked: Bool) {
+        hasUnsavedEditorChanges = isLocked
         presented?.isInteractiveDismissDisabled = isLocked
     }
 
     func closeEditor() {
+        hasUnsavedEditorChanges = false
         dismissPresented()
+    }
+}
+
+// MARK: - iPad
+
+enum PopoverSource: Hashable {
+    case adaptive
+    case everywhere
+}
+
+enum SheetSizingDemo: String, CaseIterable, Identifiable, Hashable {
+    case form, page, fitted
+
+    var id: Self { self }
+    var title: String { "\(rawValue.capitalized) sheet" }
+
+    var sizing: SheetSizing {
+        switch self {
+        case .form: .form
+        case .page: .page
+        case .fitted: .fitted
+        }
     }
 }
 

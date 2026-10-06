@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		13F82FFF4FA26A3CB44D8DD1 /* NavigationLifetimeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233337B3C57D2FD7655BBB76 /* NavigationLifetimeUITests.swift */; };
 		19AA2768FB57A4D488BE162F /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D3E8F24B98594423AFEBE0 /* DeepLink.swift */; };
+		3623B1C5D3D646619285577A /* AlbumsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F331D00E5F9F73DB0542A29 /* AlbumsCoordinator.swift */; };
+		37C3CA57E459A84A0CBF903B /* DeepLinkAndiPadUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F2FABE6DD3F09ABD13C57A /* DeepLinkAndiPadUITests.swift */; };
 		3F1D3D4E14918956D9E32004 /* ProfileCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1CD8D95E95548ACE3D444A /* ProfileCoordinator.swift */; };
 		4267620926974047ABC6BFFF /* LabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F59202D9E2F22BC0CC16CA /* LabView.swift */; };
 		4E34AF6DB6BA5812DC55B181 /* AuthViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58766621A130464BBA720877 /* AuthViews.swift */; };
@@ -27,6 +29,7 @@
 		D853017071C5A8DA27D497C6 /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 064AE1735518D14BAD814403 /* MainCoordinator.swift */; };
 		E38E81EF3E970229EA332FC0 /* PresentationDemos.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6EE29EE25E5814693467EDA /* PresentationDemos.swift */; };
 		EB97922B95094F1DF9706657 /* WaypointExampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC58D41BE7BF8E93E248E8A2 /* WaypointExampleApp.swift */; };
+		EBE7A87EC8DD9E8CA78FDE65 /* DeepLinksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8B93AB518663DA4B8E68F80 /* DeepLinksView.swift */; };
 		F72C5BB831D6AC66E3DF70F3 /* ExploreCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D779832B91CB9D978D3709 /* ExploreCoordinator.swift */; };
 		FC9F97A2EBDA091BA6CF095C /* LifetimeOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8996ED05C390D1237D7CF3A /* LifetimeOverlay.swift */; };
 		FCF1AD660CBABCEBA8D7C8B0 /* SettingsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6775E62D630FB07F175DD791 /* SettingsCoordinator.swift */; };
@@ -46,12 +49,14 @@
 		064AE1735518D14BAD814403 /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
 		0E1CD8D95E95548ACE3D444A /* ProfileCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCoordinator.swift; sourceTree = "<group>"; };
 		233337B3C57D2FD7655BBB76 /* NavigationLifetimeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationLifetimeUITests.swift; sourceTree = "<group>"; };
+		30F2FABE6DD3F09ABD13C57A /* DeepLinkAndiPadUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkAndiPadUITests.swift; sourceTree = "<group>"; };
 		448F267E4D43F4E02ABB146B /* ProfileViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViews.swift; sourceTree = "<group>"; };
 		452EB49DD0877FD8D8D86265 /* FeedCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCoordinator.swift; sourceTree = "<group>"; };
 		50157527E38C5D41D5317739 /* OnboardingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCoordinator.swift; sourceTree = "<group>"; };
 		565466038E9F5630127229A7 /* AuthCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthCoordinator.swift; sourceTree = "<group>"; };
 		566EFA2BCE98E2CE00C3BD4D /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		58766621A130464BBA720877 /* AuthViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViews.swift; sourceTree = "<group>"; };
+		5F331D00E5F9F73DB0542A29 /* AlbumsCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumsCoordinator.swift; sourceTree = "<group>"; };
 		6775E62D630FB07F175DD791 /* SettingsCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCoordinator.swift; sourceTree = "<group>"; };
 		72BB452828329A9466789AEA /* FeedViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedViews.swift; sourceTree = "<group>"; };
 		82A0F19C6EE784FA79C2B18E /* Waypoint */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Waypoint; path = ..; sourceTree = SOURCE_ROOT; };
@@ -62,6 +67,7 @@
 		B8EF712FCD9A7D87BA9DC6E4 /* WaypointExample.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WaypointExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3D3E8F24B98594423AFEBE0 /* DeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLink.swift; sourceTree = "<group>"; };
 		D4F59202D9E2F22BC0CC16CA /* LabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabView.swift; sourceTree = "<group>"; };
+		D8B93AB518663DA4B8E68F80 /* DeepLinksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinksView.swift; sourceTree = "<group>"; };
 		D9D7926B6E31E52561A623AB /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		DBD9E949C60B9A27B33C004E /* RepeatedRootSwitchUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatedRootSwitchUITests.swift; sourceTree = "<group>"; };
 		F5D779832B91CB9D978D3709 /* ExploreCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreCoordinator.swift; sourceTree = "<group>"; };
@@ -113,6 +119,14 @@
 			);
 			sourceTree = "<group>";
 		};
+		3A4EB3C007865785F1F67A26 /* Albums */ = {
+			isa = PBXGroup;
+			children = (
+				5F331D00E5F9F73DB0542A29 /* AlbumsCoordinator.swift */,
+			);
+			path = Albums;
+			sourceTree = "<group>";
+		};
 		61EE058FAE1883E6DE024836 /* Debug */ = {
 			isa = PBXGroup;
 			children = (
@@ -124,6 +138,7 @@
 		6B0E271570F41E77AAAC5023 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				D8B93AB518663DA4B8E68F80 /* DeepLinksView.swift */,
 				0E1CD8D95E95548ACE3D444A /* ProfileCoordinator.swift */,
 				448F267E4D43F4E02ABB146B /* ProfileViews.swift */,
 				6775E62D630FB07F175DD791 /* SettingsCoordinator.swift */,
@@ -142,6 +157,7 @@
 		AC3625E02C4E7D67B5FB526D /* WaypointExampleUITests */ = {
 			isa = PBXGroup;
 			children = (
+				30F2FABE6DD3F09ABD13C57A /* DeepLinkAndiPadUITests.swift */,
 				233337B3C57D2FD7655BBB76 /* NavigationLifetimeUITests.swift */,
 				DBD9E949C60B9A27B33C004E /* RepeatedRootSwitchUITests.swift */,
 				AA07852B2A753045A1C9BD6F /* Support.swift */,
@@ -199,6 +215,7 @@
 			isa = PBXGroup;
 			children = (
 				FC35818290D876BAD1E1659F /* Info.plist */,
+				3A4EB3C007865785F1F67A26 /* Albums */,
 				C1944A336BC6EAF259B86B62 /* App */,
 				206CE8D6B848620D8A840C77 /* Auth */,
 				61EE058FAE1883E6DE024836 /* Debug */,
@@ -293,6 +310,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37C3CA57E459A84A0CBF903B /* DeepLinkAndiPadUITests.swift in Sources */,
 				13F82FFF4FA26A3CB44D8DD1 /* NavigationLifetimeUITests.swift in Sources */,
 				8F482549F6FD780E0E48B0AE /* RepeatedRootSwitchUITests.swift in Sources */,
 				A3E89FE958FB942A1D50C79F /* Support.swift in Sources */,
@@ -303,11 +321,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3623B1C5D3D646619285577A /* AlbumsCoordinator.swift in Sources */,
 				C127BB82826AE6E2D0480ECE /* AppCoordinator.swift in Sources */,
 				8D2C4EF1DF6B0FC9D46C04E4 /* AuthCoordinator.swift in Sources */,
 				4E34AF6DB6BA5812DC55B181 /* AuthViews.swift in Sources */,
 				8C3444D83FC448C2B1A6F34C /* Components.swift in Sources */,
 				19AA2768FB57A4D488BE162F /* DeepLink.swift in Sources */,
+				EBE7A87EC8DD9E8CA78FDE65 /* DeepLinksView.swift in Sources */,
 				F72C5BB831D6AC66E3DF70F3 /* ExploreCoordinator.swift in Sources */,
 				996EA810767EB431131295FE /* FeedCoordinator.swift in Sources */,
 				A6F7911E4E1A428F98D9FEB5 /* FeedViews.swift in Sources */,

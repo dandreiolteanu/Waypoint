@@ -39,13 +39,17 @@ public final class Navigator {
     /// An alert waiting for a dismissal animation to finish. UIKit refuses to present one mid-dismissal.
     @ObservationIgnored private var queuedAlert: AlertRequest?
     @ObservationIgnored private(set) var isTornDown = false
+    /// How many on-screen views anchor popovers, by id. A popover whose anchor isn't on screen is shown as a sheet.
+    @ObservationIgnored private var popoverSources: [AnyHashable: Int] = [:]
 
     /// A navigator whose root screen is `coordinator`'s ``Routing/initialRoute``. The navigator owns the coordinator from here on.
-    public convenience init<C: Routing>(root coordinator: C) {
-        self.init(root: coordinator, embedsInNavigationStack: true)
-    }
-
-    convenience init<C: Routing>(root coordinator: C, embedsInNavigationStack: Bool) {
+    ///
+    /// - Parameters:
+    ///   - coordinator: The root flow.
+    ///   - embedsInNavigationStack: Turn it off when the root screen is itself a container, such as a
+    ///     ``SplitHost``: a split view must not sit inside a navigation stack. A navigator without a stack can still
+    ///     present, but not push.
+    public convenience init<C: Routing>(root coordinator: C, embedsInNavigationStack: Bool = true) {
         let entry = coordinator.makeEntry(for: coordinator.initialRoute, transition: .automatic)
         self.init(rootEntry: entry, embedsInNavigationStack: embedsInNavigationStack)
         coordinator.attach(to: self, anchor: entry)
@@ -191,7 +195,7 @@ public final class Navigator {
     /// and the new presentation follows once the old one has animated out. SwiftUI drops a presentation started mid-dismissal.
     func present(_ navigator: Navigator, style: PresentationStyle, transition: ScreenTransition, by coordinator: Coordinator? = nil) {
         guard !isTornDown else { return navigator.tearDown() }
-        let newPresentation = Presentation(navigator: navigator, style: style, transition: transition)
+        let newPresentation = Presentation(navigator: navigator, style: resolved(style), transition: transition)
         newPresentation.presentedBy = coordinator
         navigator.presenter = self
         if presentation == nil && dismissingPresentation == nil {
@@ -253,6 +257,27 @@ public final class Navigator {
     }
 
     /// Called from `onDismiss`, after the dismissal animation has finished.
+    /// A popover needs its anchor on screen. Without one, it's shown as a sheet rather than not at all.
+    private func resolved(_ style: PresentationStyle) -> PresentationStyle {
+        guard style.kind == .popover else { return style }
+        guard let id = style.popoverSourceID, popoverSources[id, default: 0] > 0 else {
+            #if DEBUG
+            waypointLog.notice("Waypoint: no view marked .popoverSource(id: \(String(describing: style.popoverSourceID), privacy: .public)) is on screen in this stack; presenting as a sheet.")
+            #endif
+            return style.asSheet
+        }
+        return style
+    }
+
+    func registerPopoverSource(_ id: AnyHashable) {
+        popoverSources[id, default: 0] += 1
+    }
+
+    func unregisterPopoverSource(_ id: AnyHashable) {
+        let count = popoverSources[id, default: 0] - 1
+        popoverSources[id] = count > 0 ? count : nil
+    }
+
     func presentationDidFinishDismissing() {
         dismissingPresentation = nil
         showQueuedPresentation()

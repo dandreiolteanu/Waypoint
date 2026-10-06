@@ -36,10 +36,11 @@ final class AppCoordinator {
         }
     }
 
+    /// The top of the deep link path. Signed in, the link goes to the tabs. Signed out, it waits for sign-in.
     func open(_ url: URL) {
         guard let link = DeepLink(url: url) else { return }
         if case let .main(main) = root {
-            main.open(link)
+            Task { await main.open(link) }
         } else {
             pendingDeepLink = link
         }
@@ -61,7 +62,7 @@ final class AppCoordinator {
         replaceRoot(with: .main(main))
         if let link = pendingDeepLink {
             pendingDeepLink = nil
-            main.open(link)
+            Task { await main.open(link) }
         }
     }
 

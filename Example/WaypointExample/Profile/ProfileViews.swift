@@ -6,6 +6,7 @@ protocol ProfileNavigation: AnyObject {
     func editName(current: String) async -> String?
     func pickColor(current: ProfileColor) async -> ProfileColor?
     func showSettings()
+    func showLinks()
 }
 
 @MainActor
@@ -48,6 +49,10 @@ final class ProfileViewModel {
     func showSettings() {
         navigation.showSettings()
     }
+
+    func showLinks() {
+        navigation.showLinks()
+    }
 }
 
 struct ProfileView: View {
@@ -62,6 +67,9 @@ struct ProfileView: View {
                             .fill(user.favoriteColor.color.gradient)
                             .frame(width: 56, height: 56)
                             .overlay { Text(user.name.prefix(1)).font(.title2.bold()).foregroundStyle(.white) }
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel("Favorite color \(user.favoriteColor.title)")
+                            .accessibilityIdentifier("profile.color")
                         VStack(alignment: .leading) {
                             Text(user.name).font(.title3.bold()).accessibilityIdentifier("profile.name")
                             Text(user.email).foregroundStyle(.secondary)
@@ -86,6 +94,8 @@ struct ProfileView: View {
             Section {
                 DemoRow(title: "Settings", subtitle: "A child coordinator pushed onto this stack", systemImage: "gearshape", action: viewModel.showSettings)
                     .accessibilityIdentifier("profile.settings")
+                DemoRow(title: "Deep links", subtitle: "Open every link the app handles", systemImage: "link", action: viewModel.showLinks)
+                    .accessibilityIdentifier("profile.links")
             }
         }
         .navigationTitle("Profile")

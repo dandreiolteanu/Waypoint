@@ -53,6 +53,12 @@ public final class Presentation: Identifiable {
     /// The presentation's identity.
     nonisolated public var id: ObjectIdentifier { ObjectIdentifier(self) }
 
+    /// Popovers have no `onDismiss`, so their content disappearing is the signal that the dismissal finished.
+    func didDisappear() {
+        guard style.kind == .popover else { return }
+        navigator.presenter?.presentationDidFinishDismissing()
+    }
+
     func didAppear() {
         hasAppeared = true
         if let alert = alertOnAppear {

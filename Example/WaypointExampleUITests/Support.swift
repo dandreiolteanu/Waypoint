@@ -78,8 +78,16 @@ class WaypointUITestCase: XCTestCase {
         XCTFail("Leak: expected \(baseline), still \(String(describing: current)). \(lifetime.label)", file: file, line: line)
     }
 
+    /// Taps a tab: in the bottom tab bar on iPhone, or the floating tab bar (or sidebar) on iPad.
     func tapTab(_ name: String) {
-        app.tabBars.buttons[name].tap()
+        let barButton = app.tabBars.buttons[name]
+        if barButton.exists {
+            barButton.tap()
+        } else {
+            let button = app.buttons.matching(NSPredicate(format: "label == %@", name)).firstMatch
+            XCTAssertTrue(button.waitForExistence(timeout: 5), "No tab named \(name)")
+            button.tap()
+        }
     }
 
     func tap(_ identifier: String, timeout: TimeInterval = 5, file: StaticString = #filePath, line: UInt = #line) {

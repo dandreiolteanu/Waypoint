@@ -1,6 +1,6 @@
 # ``Waypoint``
 
-Coordinators for SwiftUI navigation: push, sheets with any detent, full-screen covers, zoom transitions, tabs, root switching and results, with no leaks however the user leaves a screen.
+Coordinators for SwiftUI navigation: push, sheets with any detent, full-screen covers, popovers, zoom transitions, tabs, split views, root switching, deep links and results, with no leaks however the user leaves a screen.
 
 ## Overview
 
@@ -80,6 +80,13 @@ What makes it different:
 - <doc:DeepLinks>
 - ``TabNavigator``
 - ``TabHost``
+
+### iPad
+
+- <doc:iPad>
+- ``SplitNavigator``
+- ``SplitHost``
+- ``SheetSizing``
 
 ### Alerts
 

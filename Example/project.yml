@@ -26,12 +26,16 @@ targets:
         UILaunchScreen: {}
         CFBundleDisplayName: Waypoint
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
         CFBundleURLTypes:
           - CFBundleURLName: dev.waypoint.example
             CFBundleURLSchemes: [waypoint]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.waypoint.example
+        TARGETED_DEVICE_FAMILY: "1,2"
   WaypointExampleUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -42,6 +46,7 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: WaypointExample
+        TARGETED_DEVICE_FAMILY: "1,2"
 schemes:
   WaypointExample:
     build:

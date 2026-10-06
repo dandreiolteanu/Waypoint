@@ -38,8 +38,9 @@ final class LibraryCoordinator: FlowCoordinator {
 
 - **Push and present** routes, or whole flows (child coordinators), with any detent, full-screen covers and zoom transitions.
 - **Await results.** `await push { … }` returns the value, or `nil` if the user left. It resumes exactly once, after the screen has fully left the screen.
-- **Tabs and root switching**, with tap-again-to-pop and teardown of the old tree.
-- **Leak-proof by construction.** Navigation state owns coordinators. However the user leaves (pop, swipe-back, swipe-down, dismissal, root switch), the flow is freed. Thirty-one UI flows prove it on iOS 18 and 27, including repeated sign-out.
+- **Tabs, split views and root switching**, with tap-again-to-pop and teardown of the old tree.
+- **iPad**: `NavigationSplitView` flows, popovers that adapt to sheets on iPhone, sheet sizing, multiple windows.
+- **Leak-proof by construction.** Navigation state owns coordinators. However the user leaves (pop, swipe-back, swipe-down, dismissal, root switch), the flow is freed. Forty UI flows prove it on iPhone (iOS 18 and 27) and iPad, including repeated sign-out.
 - **Testable without SwiftUI.** Navigation is plain state.
 
 Requires iOS 17 (zoom transitions need iOS 18) and Swift 6. No dependencies.
@@ -62,7 +63,8 @@ The full documentation is a DocC catalog. Build it with **Product › Build Docu
 | [Passing Data](Sources/Waypoint/Waypoint.docc/PassingData.md) | Forward, across a flow, and awaited results |
 | [Tabs](Sources/Waypoint/Waypoint.docc/Tabs.md) | `TabNavigator` and `TabHost` |
 | [Root Switching](Sources/Waypoint/Waypoint.docc/RootSwitching.md) | Signed out to signed in, and back |
-| [Deep Links](Sources/Waypoint/Waypoint.docc/DeepLinks.md) | URL to navigation, including links that arrive signed out |
+| [Deep Links](Sources/Waypoint/Waypoint.docc/DeepLinks.md) | Links handed down the coordinator tree, sign-in gating, unsaved-work guards, notifications |
+| [iPad](Sources/Waypoint/Waypoint.docc/iPad.md) | Split views, popovers, sheet sizing, sidebar tabs, multiple windows |
 | [Alerts](Sources/Waypoint/Waypoint.docc/Alerts.md) | `confirm` and `alert`, awaited |
 | [Testing](Sources/Waypoint/Waypoint.docc/Testing.md) | Unit tests for coordinators, leak checks in UI tests |
 | [Troubleshooting](Sources/Waypoint/Waypoint.docc/Troubleshooting.md) | Symptoms and fixes, SwiftUI quirks handled, limitations |
@@ -122,6 +124,12 @@ tabs.coordinator(for: .feed, as: FeedCoordinator.self)?.showPost(id)
 
 // Zoom source, in the view that's tapped
 Thumbnail(photo).transitionSource(id: photo.id)
+
+// iPad
+present(.filters, as: .popover(from: "filters"))     // anchored to a view marked .popoverSource(id: "filters")
+present(.settings, as: .sheet(sizing: .form))
+let split = SplitNavigator<Album>(selected: .all) { album in Navigator(root: AlbumCoordinator(album: album)) }
+SplitHost(split) { split in List(albums, selection: split.selection) { … } } placeholder: { … }
 ```
 
 ## The model in one picture
@@ -158,7 +166,8 @@ Strong references only point down the tree. Coordinators hold their navigator we
 - locking dismissal while a form has unsaved changes
 - nested sheets, and replacing one sheet with another
 - awaited results and pushed flows
-- deep links (`waypoint://feed/photo/3`, `waypoint://profile/settings/about`, `waypoint://explore/nested/3`)
+- an iPad split view (Albums), popovers, and sheet sizing; the app runs on iPhone and iPad, with multiple windows
+- nine deep links, from Profile › Deep links: into tabs, the split view, stacked sheets, a flow several screens deep, a link that awaits a result, a guard that protects unsaved work, and a notification tap
 - alerts
 
 A debug overlay shows the number of live coordinators, navigators, screens and view models. Walk into any flow and back out, and they return to where they started.
@@ -169,7 +178,7 @@ A debug overlay shows the number of live coordinators, navigators, screens and v
 swift test   # unit tests, documentation examples and benchmarks, on macOS (about 10s)
 
 xcodebuild test -project Example/WaypointExample.xcodeproj -scheme WaypointExample \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'   # 31 UI flows, about 10 minutes
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'   # 40 UI flows, about 13 minutes; also runs on iPad
 ```
 
 Each UI test reads the overlay before and after a flow, and fails with the names of whatever is still alive. Run `xcodegen generate` in `Example/` only if you change `project.yml`.

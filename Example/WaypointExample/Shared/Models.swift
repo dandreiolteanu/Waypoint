@@ -65,3 +65,25 @@ enum PhotoLibrary {
         all.filter { $0.id != photo.id && ($0.id % 3 == photo.id % 3) }
     }
 }
+
+/// The albums in the iPad split view. Each one is a slice of the photo library.
+enum Album: String, CaseIterable, Identifiable, Hashable, Sendable {
+    case landscapes, city, nature, sky
+
+    var id: Self { self }
+    var title: String { rawValue.capitalized }
+
+    var icon: String {
+        switch self {
+        case .landscapes: "mountain.2"
+        case .city: "building.2"
+        case .nature: "leaf"
+        case .sky: "cloud.sun"
+        }
+    }
+
+    var photos: [Photo] {
+        let index = Album.allCases.firstIndex(of: self) ?? 0
+        return PhotoLibrary.all.filter { $0.id % Album.allCases.count == index }
+    }
+}

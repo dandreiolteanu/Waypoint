@@ -46,6 +46,7 @@ public struct NavigationHost: View {
         if let navigator = navigator ?? makeNavigator.map({ ownedNavigator.resolve($0) }) {
             stack(navigator)
                 .environment(\.transitionNamespace, namespace)
+                .environment(\.navigatorReference, NavigatorReference(navigator: navigator))
                 .modifier(PresentationModifier(navigator: navigator, namespace: namespace))
                 .modifier(AlertModifier(navigator: navigator))
         }
@@ -105,36 +106,41 @@ private struct PresentationModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .sheet(item: binding(for: .sheet), onDismiss: { [weak navigator] in navigator?.presentationDidFinishDismissing() }) { presentation in
+            .sheet(item: presentationBinding(navigator, kind: .sheet), onDismiss: { [weak navigator] in navigator?.presentationDidFinishDismissing() }) { presentation in
                 PresentedContent(presentation: presentation, namespace: namespace)
             }
             #if os(iOS)
-            .fullScreenCover(item: binding(for: .fullScreenCover), onDismiss: { [weak navigator] in navigator?.presentationDidFinishDismissing() }) { presentation in
+            .fullScreenCover(item: presentationBinding(navigator, kind: .fullScreenCover), onDismiss: { [weak navigator] in navigator?.presentationDidFinishDismissing() }) { presentation in
                 PresentedContent(presentation: presentation, namespace: namespace)
             }
             #endif
     }
-
-    private func binding(for kind: PresentationStyle.Kind) -> Binding<PresentationItem?> {
-        // The presentation this binding was rendered with. A late write from SwiftUI about an older one must not dismiss a newer one.
-        weak let rendered = navigator?.presentation
-        return Binding(
-            get: { [weak navigator] in
-                guard let presentation = navigator?.presentation, presentation.style.resolvedKind == kind else { return nil }
-                return PresentationItem(presentation)
-            },
-            set: { [weak navigator] newValue in
-                // SwiftUI only ever writes nil here, when the user swipes the sheet away (or a SwiftUI `dismiss` runs).
-                guard newValue == nil, let navigator, let current = navigator.presentation, current === rendered,
-                      current.style.resolvedKind == kind else { return }
-                navigator.presentationDismissedBySystem(current)
-            }
-        )
-    }
 }
 
-/// The value SwiftUI's `sheet(item:)` holds. It has a stable identity, and only a weak reference to the presentation.
-private struct PresentationItem: Identifiable {
+/// The binding SwiftUI's `sheet(item:)`, `fullScreenCover(item:)` and `popover(item:)` read: the navigator's presentation,
+/// when it's of `kind` (and, for a popover, anchored at `sourceID`).
+@MainActor
+func presentationBinding(_ navigator: Navigator?, kind: PresentationStyle.Kind, sourceID: AnyHashable? = nil) -> Binding<PresentationItem?> {
+    func matches(_ presentation: Presentation) -> Bool {
+        presentation.style.resolvedKind == kind && (sourceID == nil || presentation.style.popoverSourceID == sourceID)
+    }
+    // The presentation this binding was rendered with. A late write from SwiftUI about an older one must not dismiss a newer one.
+    weak let rendered = navigator?.presentation
+    return Binding(
+        get: { [weak navigator] in
+            guard let presentation = navigator?.presentation, matches(presentation) else { return nil }
+            return PresentationItem(presentation)
+        },
+        set: { [weak navigator] newValue in
+            // SwiftUI only ever writes nil here, when the user dismisses it (swipe, tap outside, or a SwiftUI `dismiss`).
+            guard newValue == nil, let navigator, let current = navigator.presentation, current === rendered, matches(current) else { return }
+            navigator.presentationDismissedBySystem(current)
+        }
+    )
+}
+
+/// The value SwiftUI's presentation modifiers hold. It has a stable identity, and only a weak reference to the presentation.
+struct PresentationItem: Identifiable {
     let id: ObjectIdentifier
     weak var presentation: Presentation?
 
@@ -144,7 +150,8 @@ private struct PresentationItem: Identifiable {
     }
 }
 
-private struct PresentedContent: View {
+/// A presented navigator, with its presentation options applied.
+struct PresentedContent: View {
     let item: PresentationItem
     /// The presenter's namespace. That's where the zoom source lives.
     let namespace: Namespace.ID
@@ -164,10 +171,29 @@ private struct PresentedContent: View {
                 .presentationDragIndicator(presentation.style.dragIndicator)
                 .presentationBackgroundInteraction(presentation.style.backgroundInteraction)
                 .presentationCornerRadius(presentation.style.cornerRadius)
+                .presentationCompactAdaptation(presentation.style.compactAdaptation)
+                .sheetSizing(presentation.style.sizing)
                 .interactiveDismissDisabled(presentation.isInteractiveDismissDisabled)
                 // The zoom has to wrap the whole presented content, NavigationStack included, or the system ignores it.
                 .zoomTransition(sourceID: presentation.transition.zoomSourceID, in: namespace)
                 .onAppear { [weak presentation] in presentation?.didAppear() }
+                .onDisappear { [weak presentation] in presentation?.didDisappear() }
+        }
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func sheetSizing(_ sizing: SheetSizing) -> some View {
+        if #available(iOS 18, macOS 15, *) {
+            switch sizing {
+            case .automatic: self
+            case .form: presentationSizing(.form)
+            case .page: presentationSizing(.page)
+            case .fitted: presentationSizing(.fitted)
+            }
+        } else {
+            self
         }
     }
 }
@@ -178,7 +204,7 @@ extension PresentationStyle {
         #if os(iOS)
         kind
         #else
-        .sheet
+        kind == .fullScreenCover ? .sheet : kind
         #endif
     }
 }

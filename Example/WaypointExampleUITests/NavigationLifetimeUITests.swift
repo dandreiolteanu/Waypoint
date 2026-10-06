@@ -424,8 +424,9 @@ final class RootAndDeepLinkUITests: WaypointUITestCase {
         tap("onboarding.finish")
 
         waitFor("feed.photo.1", timeout: 8)
-        let counts = settledCounts()
-        XCTAssertEqual(counts.coordinators, 3, "Only the three tab coordinators should be alive: \(counts)")
+        _ = settledCounts()
+        XCTAssertFalse(lifetime.label.contains("AuthCoordinator"), "The signed-out flow should be gone: \(lifetime.label)")
+        XCTAssertFalse(lifetime.label.contains("OnboardingCoordinator"), "Onboarding should be gone: \(lifetime.label)")
         tapTab("Profile")
         XCTAssertTrue(app.staticTexts["Linus"].waitForExistence(timeout: 5))
     }

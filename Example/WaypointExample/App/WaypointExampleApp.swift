@@ -3,12 +3,28 @@ import Waypoint
 
 @main
 struct WaypointExampleApp: App {
-    @State private var coordinator = AppCoordinator(session: LaunchOptions.session())
+    /// Shared by every window: one signed-in user per app.
+    @State private var session = LaunchOptions.session()
 
     var body: some Scene {
         WindowGroup {
+            SceneRoot(session: session)
+        }
+    }
+}
+
+/// One coordinator tree per window. On iPad, each window navigates independently, and a link opens in the window
+/// the system routes it to.
+struct SceneRoot: View {
+    let session: SessionStore
+    @State private var coordinator: AppCoordinator?
+
+    var body: some View {
+        if let coordinator {
             AppRootView(coordinator: coordinator)
                 .onOpenURL { coordinator.open($0) }
+        } else {
+            Color.clear.onAppear { coordinator = AppCoordinator(session: session) }
         }
     }
 }
