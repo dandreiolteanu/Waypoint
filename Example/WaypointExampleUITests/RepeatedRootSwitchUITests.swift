@@ -25,6 +25,7 @@ final class RepeatedRootSwitchUITests: WaypointUITestCase {
             password.tap()
             app.typeText("1234")
             tap("signIn.submit")
+            dismissSavePasswordPrompt()
             waitFor("feed.photo.1", timeout: 8)
             tapTab("Explore"); tapTab("Profile"); tapTab("Feed")
             assertReturns(to: signedIn)   // after every round, not just the last

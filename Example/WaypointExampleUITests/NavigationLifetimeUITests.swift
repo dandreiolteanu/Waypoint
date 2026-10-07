@@ -389,6 +389,7 @@ final class RootAndDeepLinkUITests: WaypointUITestCase {
         password.tap()
         app.typeText("1234")
         tap("signIn.submit")
+        dismissSavePasswordPrompt()
 
         waitFor("feed.photo.1", timeout: 8)
         tapTab("Explore")
@@ -483,6 +484,7 @@ final class RootAndDeepLinkUITests: WaypointUITestCase {
         password.tap()
         app.typeText("1234")
         tap("signIn.submit")
+        dismissSavePasswordPrompt()
 
         waitFor("settings.about", timeout: 8)
     }

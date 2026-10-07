@@ -90,15 +90,40 @@ class WaypointUITestCase: XCTestCase {
         XCTFail("Leak: expected \(baseline), still \(String(describing: current)). \(lifetime.label)", file: file, line: line)
     }
 
+    /// After a sign-in, iOS may offer to save the password. The prompt swallows the next taps, so decline it if it shows.
+    func dismissSavePasswordPrompt() {
+        for candidate in [app.buttons["Not Now"], XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Not Now"]] {
+            if candidate.waitForExistence(timeout: 2) {
+                candidate.tap()
+                return
+            }
+        }
+    }
+
     /// Taps a tab: in the bottom tab bar on iPhone, or the floating tab bar (or sidebar) on iPad.
     func tapTab(_ name: String) {
         let barButton = app.tabBars.buttons[name]
         if barButton.exists {
             barButton.tap()
         } else {
-            let button = app.buttons.matching(NSPredicate(format: "label == %@", name)).firstMatch
-            XCTAssertTrue(button.waitForExistence(timeout: 5), "No tab named \(name)")
-            button.tap()
+            // The floating tab bar (iPad, and iPhone on iOS 27) can expose a tab more than once, and XCUITest sometimes
+            // can't compute a hit point for it and skips the tap. Tap a hittable copy normally; otherwise tap the screen
+            // point of the copy that's on screen, which doesn't depend on that hit point.
+            let matches = app.buttons.matching(NSPredicate(format: "label == %@", name))
+            XCTAssertTrue(matches.firstMatch.waitForExistence(timeout: 5), "No tab named \(name)")
+            let candidates = matches.allElementsBoundByIndex
+            if let hittable = candidates.first(where: { $0.isHittable }) {
+                hittable.tap()
+                let selected = matches.matching(NSPredicate(format: "isSelected == true")).firstMatch
+                if selected.waitForExistence(timeout: 2) { return }
+            }
+            let window = app.windows.firstMatch.frame
+            if let onScreen = candidates.first(where: { !$0.frame.isEmpty && window.contains(CGPoint(x: $0.frame.midX, y: $0.frame.midY)) }) {
+                let frame = onScreen.frame
+                app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: frame.midX, dy: frame.midY)).tap()
+            } else {
+                XCTFail("Tab \(name) isn't on screen")
+            }
         }
     }
 
