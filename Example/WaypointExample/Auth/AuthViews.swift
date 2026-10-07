@@ -4,6 +4,8 @@ import Waypoint
 struct WelcomeView: View {
     let onSignIn: () -> Void
     let onCreateAccount: () -> Void
+    let onQuickSignIn: () async throws -> Void
+    @State private var isSigningIn = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -29,6 +31,20 @@ struct WelcomeView: View {
                 }
                 .buttonStyle(.bordered)
                 .accessibilityIdentifier("welcome.createAccount")
+                Button {
+                    isSigningIn = true
+                    Task {
+                        try? await onQuickSignIn()
+                        isSigningIn = false
+                    }
+                } label: {
+                    HStack {
+                        Text("Sign in as Ada")
+                        if isSigningIn { ProgressView() }
+                    }
+                }
+                .disabled(isSigningIn)
+                .accessibilityIdentifier("welcome.quickSignIn")
             }
             .controlSize(.large)
         }

@@ -25,13 +25,19 @@ final class AuthCoordinator: FlowCoordinator {
         case .welcome:
             WelcomeView(
                 onSignIn: { self.push(.signIn) },
-                onCreateAccount: { Task { await self.createAccount() } }
+                onCreateAccount: { Task { await self.createAccount() } },
+                onQuickSignIn: { try await self.quickSignIn() }
             )
         case .signIn:
             SignInView(viewModel: SignInViewModel(session: session, navigation: self))
         case let .forgotPassword(email):
             ForgotPasswordView(email: email, onDone: { self.dismissPresented() })
         }
+    }
+
+    /// Signs in with the demo account, skipping the form.
+    private func quickSignIn() async throws {
+        onSignedIn(try await session.signIn(email: "ada@example.com", password: "1234"))
     }
 
     /// Onboarding is a child flow with several screens and a shared draft. It hands back the finished `User`, or `nil` if cancelled.

@@ -434,6 +434,25 @@ final class RootAndDeepLinkUITests: WaypointUITestCase {
         assertReturns(to: signedIn)
     }
 
+    func testQuickSignInFromWelcome() {
+        launch()
+        let signedIn = settledCounts()
+        tapTab("Profile")
+        tap("profile.settings")
+        tap("settings.signOut")
+        let confirm = app.alerts.buttons["Sign out"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        confirm.tap()
+
+        tap("welcome.quickSignIn")
+
+        waitFor("feed.photo.1", timeout: 8)
+        tapTab("Explore")
+        tapTab("Profile")
+        tapTab("Feed")
+        assertReturns(to: signedIn)
+    }
+
     func testForgotPasswordSheetInAuthFlow() {
         launch(signedIn: false)
         tap("welcome.signIn")
