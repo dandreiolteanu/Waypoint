@@ -1,4 +1,4 @@
-# Waypoint
+<p align="center"><img src=".github/banner.png" alt="Waypoint" width="100%"></p>
 
 Coordinators for SwiftUI navigation, in pure SwiftUI (`NavigationStack`, `sheet`, `fullScreenCover`), for Swift 6 and `@Observable`.
 
