@@ -362,6 +362,29 @@ struct EdgeCaseTests {
         #expect(second.navigator?.presenter === firstNavigator)
     }
 
+    @Test("A deep-link reset closes an alert that's up, and its await returns nil")
+    func resetClosesAlerts() async throws {
+        // GIVEN
+        enum AppTab: CaseIterable { case feed, profile }
+        let profile = TestCoordinator()
+        let tabs = TabNavigator(selected: AppTab.profile) { tab in
+            switch tab {
+            case .feed: Navigator(root: TestCoordinator())
+            case .profile: Navigator(root: profile)
+            }
+        }
+        let task = Task { await profile.confirm("Sign out?", confirmTitle: "Sign out") }
+        await settle()
+        #expect(tabs[.profile].alertRequest != nil)
+
+        // WHEN
+        tabs.select(.feed, reset: true)
+
+        // THEN
+        #expect(tabs[.profile].alertRequest == nil)
+        #expect(await task.value == false)
+    }
+
     private func settle() async {
         for _ in 0..<10 { await Task.yield() }
     }

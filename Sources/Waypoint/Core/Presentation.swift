@@ -47,6 +47,12 @@ public final class Presentation: Identifiable {
         navigator.root.route(as: type)
     }
 
+    /// The coordinator at the root of the presented stack, as `C`: the flow shown with `presentFlow`.
+    /// In tests, use it to drive a presented flow: `shop.presented?.coordinator(as: CheckoutCoordinator.self)?.next()`.
+    public func coordinator<C: Coordinator>(as type: C.Type) -> C? {
+        navigator.rootCoordinator(as: type)
+    }
+
     /// The route on top of the presented stack, as `Route`, or `nil` for another route type. Mostly for tests.
     public func topRoute<Route: Hashable>(as type: Route.Type) -> Route? {
         navigator.top.route(as: type)

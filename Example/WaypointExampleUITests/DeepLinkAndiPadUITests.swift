@@ -149,6 +149,23 @@ final class AdaptiveUITests: WaypointUITestCase {
         assertReturns(to: baseline)
     }
 
+    func testPopoverFromToolbarButton() {
+        launch()
+        tapTab("Explore")
+        let baseline = settledCounts()
+
+        tap("lab.toolbarPopover")
+        waitFor("popoverInfo")
+        let info = app.descendants(matching: .any)["popoverInfo"].firstMatch
+        let window = app.windows.firstMatch.frame
+        XCTAssertLessThan(info.frame.width, window.width * 0.95, "Expected a popover, not a full-width sheet")
+        screenshot("popover-toolbar")
+        dismissPopoverOrSheet(isPopover: true)
+
+        waitForDisappearance("popoverInfo")
+        assertReturns(to: baseline)
+    }
+
     func testSizedSheetsFreeOnClose() {
         launch()
         tapTab("Explore")

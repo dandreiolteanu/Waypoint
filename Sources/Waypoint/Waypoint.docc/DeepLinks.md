@@ -77,7 +77,7 @@ Wire it up per window: `.onOpenURL { app.open($0) }`.
 
 ## The middle: where
 
-The tab coordinator picks the tab, gives it a clean slate, and hands over the feature's part. ``TabNavigator/select(_:reset:)`` with `reset: true` dismisses every sheet (whichever tab opened it) and pops the target tab to its root, so a link lands the same way wherever the user was. ``TabNavigator/coordinator(for:as:)`` reaches the tab's coordinator.
+The tab coordinator picks the tab, gives it a clean slate, and hands over the feature's part. ``TabNavigator/select(_:reset:)`` with `reset: true` dismisses every sheet and alert (whichever tab opened it) and pops the target tab to its root, so a link lands the same way wherever the user was. ``TabNavigator/coordinator(for:as:)`` reaches the tab's coordinator.
 
 ```swift
 // MainCoordinator

@@ -39,6 +39,19 @@ struct PresentationTests {
         #expect(home.madeViewModels.liveCount == 1)
     }
 
+    @Test("A presented flow's coordinator is reachable from the presentation")
+    func presentedCoordinator() {
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        let child = ChildFlowCoordinator()
+
+        home.presentFlow(child)
+
+        #expect(home.presented?.coordinator(as: ChildFlowCoordinator.self) === child)
+        #expect(home.presented?.coordinator(as: TestCoordinator.self) == nil)
+        _ = navigator
+    }
+
     @Test("A swipe-down reported by SwiftUI tears the presentation down")
     func systemDismissal() throws {
         // GIVEN

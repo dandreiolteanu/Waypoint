@@ -88,6 +88,11 @@ final class ExploreCoordinator: FlowCoordinator {
 }
 
 extension ExploreCoordinator: LabNavigation {
+    /// Anchored to a toolbar button: the most common place for a popover.
+    func showToolbarPopover() {
+        present(.popoverInfo(everywhere: true), as: .popover(from: PopoverSource.toolbar, compactAdaptation: .popover))
+    }
+
     func showPopover(everywhere: Bool) {
         present(
             .popoverInfo(everywhere: everywhere),
@@ -154,6 +159,7 @@ extension ExploreCoordinator: EditorNavigation {
 enum PopoverSource: Hashable {
     case adaptive
     case everywhere
+    case toolbar
 }
 
 enum SheetSizingDemo: String, CaseIterable, Identifiable, Hashable {

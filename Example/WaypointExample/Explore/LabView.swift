@@ -14,6 +14,7 @@ protocol LabNavigation: AnyObject {
     func presentCardCover(_ index: Int)
     func runWizard() async -> String?
     func showPopover(everywhere: Bool)
+    func showToolbarPopover()
     func showSized(_ demo: SheetSizingDemo)
 }
 
@@ -38,6 +39,7 @@ final class LabViewModel {
     func presentCardSheet(_ index: Int) { navigation.presentCardSheet(index) }
     func presentCardCover(_ index: Int) { navigation.presentCardCover(index) }
     func showPopover(everywhere: Bool) { navigation.showPopover(everywhere: everywhere) }
+    func showToolbarPopover() { navigation.showToolbarPopover() }
     func showSized(_ demo: SheetSizingDemo) { navigation.showSized(demo) }
 
     func runWizard() async {
@@ -127,6 +129,13 @@ struct LabView: View {
             }
         }
         .navigationTitle("Explore")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("About this lab", systemImage: "info.circle", action: viewModel.showToolbarPopover)
+                    .popoverSource(id: PopoverSource.toolbar)
+                    .accessibilityIdentifier("lab.toolbarPopover")
+            }
+        }
     }
 }
 

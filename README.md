@@ -69,6 +69,22 @@ The full documentation is a DocC catalog. Build it with **Product › Build Docu
 | [Testing](Sources/Waypoint/Waypoint.docc/Testing.md) | Unit tests for coordinators, leak checks in UI tests |
 | [Troubleshooting](Sources/Waypoint/Waypoint.docc/Troubleshooting.md) | Symptoms and fixes, SwiftUI quirks handled, limitations |
 
+## Agent skill
+
+`skills/navigating-with-waypoint/` is an [agent skill](https://agentskills.io) that teaches coding agents (Claude Code, Codex and others) to use Waypoint correctly. It covers the rules, the right call for each need, app structure (tabs, root switching, deep links, split views), testing and troubleshooting.
+It works without the agent reading the package sources, which matters because SPM keeps those out of sight.
+
+Install it in an app that depends on Waypoint:
+
+```bash
+# Claude Code
+mkdir -p .claude/skills && cp -R path/to/Waypoint/skills/navigating-with-waypoint .claude/skills/
+# Codex, Gemini CLI and other agents reading .agents/skills
+mkdir -p .agents/skills && cp -R path/to/Waypoint/skills/navigating-with-waypoint .agents/skills/
+```
+
+Then add one line to the app's `CLAUDE.md` / `AGENTS.md`: *"Navigation uses Waypoint: follow the navigating-with-waypoint skill; views never navigate."*
+
 ## Cheat sheet
 
 ```swift
@@ -188,3 +204,4 @@ Each UI test reads the overlay before and after a flow, and fails with the names
 - `Sources/Waypoint`: the library (about 1,100 lines of code plus doc comments, no dependencies) and its DocC catalog.
 - `Tests/WaypointTests`: Swift Testing suites for stack, presentation, results, tabs, alerts, memory, edge cases and the documentation examples, plus XCTest benchmarks.
 - `Example`: the example app and its UI tests.
+- `skills/navigating-with-waypoint`: the agent skill.

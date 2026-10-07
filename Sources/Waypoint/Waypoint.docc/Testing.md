@@ -43,7 +43,7 @@ Useful readers:
 - ``Routing/routes``: this coordinator's routes, bottom first.
 - ``Navigator/topRoute(as:)`` and ``Navigator/depth``: the top of the stack.
 - ``Coordinator/presented``, ``Presentation/route(as:)`` and ``Presentation/topRoute(as:)``: what's presented.
-- ``Navigator/rootCoordinator(as:)`` and ``TabNavigator/coordinator(for:as:)``: reach a child flow.
+- ``Navigator/rootCoordinator(as:)``, ``Presentation/coordinator(as:)`` and ``TabNavigator/coordinator(for:as:)``: reach a child flow, including a presented one.
 - ``LifetimeTracker/liveCount(of:)`` and ``LifetimeTracker/liveTypeNames(of:)``: what's still alive, by kind and by type name.
 
 ## Simulating the user

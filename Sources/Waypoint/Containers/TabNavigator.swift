@@ -61,12 +61,15 @@ public final class TabNavigator<Tab: Hashable> {
         return Binding(get: { [weak self] in self?.selectedTab ?? fallback }, set: { [weak self] in self?.userSelected($0) })
     }
 
-    /// Selects `tab` from code. Pass `reset: true` for a deep link: it dismisses every tab's sheets (a sheet covers
-    /// the whole window, whichever tab opened it) and pops `tab` to its root.
+    /// Selects `tab` from code. Pass `reset: true` for a deep link: it dismisses every tab's sheets and alerts (they cover
+    /// the whole window, whichever tab opened them) and pops `tab` to its root.
     public func select(_ tab: Tab, reset: Bool = false) {
         selectedTab = tab
         guard reset else { return }
-        navigators.values.forEach { $0.dismissPresentation() }
+        navigators.values.forEach {
+            $0.dismissAlerts()
+            $0.dismissPresentation()
+        }
         self[tab].popToRoot()
     }
 

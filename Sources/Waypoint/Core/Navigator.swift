@@ -133,10 +133,23 @@ public final class Navigator {
         setPath([])
     }
 
-    /// Dismisses every presentation and pops to the root: a clean slate before a deep link.
+    /// Dismisses every presentation and alert, and pops to the root: a clean slate before a deep link.
+    /// Pending awaits on what it closes return `nil`.
     public func reset() {
+        dismissAlerts()
         dismissPresentation()
         popToRoot()
+    }
+
+    /// Closes the alert on screen (and one waiting to show) as if dismissed without a choice.
+    func dismissAlerts() {
+        if let waiting = queuedAlert {
+            queuedAlert = nil
+            waiting.finish(choosing: nil)
+        }
+        if let alertRequest {
+            finishAlert(alertRequest, choosing: nil)
+        }
     }
 
     /// Pops everything above `entry`, which stays on screen. Does nothing when `entry` isn't in this stack.

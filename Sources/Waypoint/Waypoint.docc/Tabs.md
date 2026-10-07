@@ -55,7 +55,7 @@ For a tab type that isn't `CaseIterable`, list the tabs yourself: ``TabNavigator
 
 - Every tab keeps its stack while another tab is selected. (A sheet covers the tab bar, so users switch tabs only with no sheet up. A sheet opened in a tab you switch away from in code stays with that tab, unless you use `reset: true`.)
 - Tapping the selected tab again pops it to its root. Turn that off with ``TabNavigator/popsToRootOnReselect``.
-- ``TabNavigator/select(_:reset:)`` switches tabs from code. Pass `reset: true` for a deep link: it dismisses every tab's sheets and pops the target tab to its root.
+- ``TabNavigator/select(_:reset:)`` switches tabs from code. Pass `reset: true` for a deep link: it dismisses every tab's sheets and alerts (a pending `confirm` returns `false`) and pops the target tab to its root.
 
 ## Reaching a tab's coordinator
 
