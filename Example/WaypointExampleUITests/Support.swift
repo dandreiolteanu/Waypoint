@@ -136,12 +136,13 @@ class WaypointUITestCase: XCTestCase {
             }
         }
         XCTAssertTrue(element.exists, "Missing \(identifier)", file: file, line: line)
-        // A row under the translucent tab bar reports as hittable, but the tap lands on the bar. Scroll it clear first.
+        // A row under the translucent tab bar, or cut off by the bottom edge, reports as hittable, but the tap lands on the
+        // bar or the home indicator. Scroll it clear first. (On iPad the tab bar is at the top, so the window edge counts.)
         let tabBar = app.tabBars.firstMatch
-        if tabBar.exists {
-            for _ in 0..<4 where element.frame.maxY > tabBar.frame.minY - 8 && element.frame.minY > 0 {
-                app.swipeUp(velocity: .slow)
-            }
+        let window = app.windows.firstMatch.frame
+        let bottom = tabBar.exists && tabBar.frame.minY > window.midY ? tabBar.frame.minY : window.maxY - 40
+        for _ in 0..<4 where element.frame.maxY > bottom - 8 && element.frame.minY > 0 {
+            app.swipeUp(velocity: .slow)
         }
         element.tap()
     }
