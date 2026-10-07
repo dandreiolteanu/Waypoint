@@ -32,7 +32,7 @@ import SwiftUI
 /// ## What a coordinator can do
 /// - Push: ``Routing/push(_:transition:)``, ``Routing/push(_:)``, ``Routing/setStack(_:)``, ``pushFlow(_:transition:then:)``
 /// - Present: ``Routing/present(_:as:transition:)``, ``presentFlow(_:as:transition:)``
-/// - Await a result: ``Routing/push(transition:_:)``, ``Routing/present(as:transition:_:)``, ``pushFlow(transition:_:)``, ``presentFlow(as:transition:_:)``
+/// - Await a result: ``Routing/push(transition:_:)``, ``Routing/present(as:transition:_:)``, ``pushFlow(transition:_:)-(_,(Callback<Value>)->Child)``, ``presentFlow(as:transition:_:)-(_,_,(Callback<Value>)->Child)``
 /// - Close: ``finish()``, ``pop()``, ``popToStart()``, ``popToRoot()``, ``dismissPresented()``, ``dismissAll()``
 /// - Ask: ``alert(_:message:style:actions:)``, ``confirm(_:message:confirmTitle:role:cancelTitle:style:)``
 @MainActor

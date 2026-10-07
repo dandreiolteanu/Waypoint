@@ -50,6 +50,12 @@ pushFlow(_ child: Child, transition: = .automatic, then: [Child.Route] = [])
 presentFlow(_ child: Child, as: PresentationStyle = .sheet, transition: = .automatic)
 await pushFlow(transition: = .automatic) { (Callback<Value>) -> Child }
 await presentFlow(as: = .sheet, transition: = .automatic) { (Callback<Value>) -> Child }
+
+// the same with a coordinator whose type is hidden, e.g. built by a DI container
+pushFlow(_ child: any Routing, transition: = .automatic)
+presentFlow(_ child: any Routing, as:, transition:)       // works through the generic version
+await pushFlow { (Callback<Value>) -> any Routing }
+await presentFlow(as:) { (Callback<Value>) -> any Routing }
 ```
 
 ## Closing and reading

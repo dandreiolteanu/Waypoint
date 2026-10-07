@@ -70,10 +70,28 @@ extension Coordinator {
     /// ```
     public func pushFlow<Child: Routing>(_ child: Child, transition: ScreenTransition = .automatic, then routes: [Child.Route] = []) {
         guard let navigator = requireNavigator() else { return }
+        attachAndPush(child, transition: transition, on: navigator)
+        if !routes.isEmpty { child.push(routes) }
+    }
+
+    /// Pushes a child flow whose concrete type isn't known here, for example one built by a dependency container.
+    ///
+    /// ```swift
+    /// let settings: any Routing = container.settingsCoordinator()
+    /// pushFlow(settings)
+    /// ```
+    public func pushFlow(_ child: any Routing, transition: ScreenTransition = .automatic) {
+        guard let navigator = requireNavigator() else { return }
+        attachAndPush(child, transition: transition, on: navigator)
+    }
+
+    /// Makes the child's first screen, attaches the child to `navigator`, and pushes the screen.
+    @discardableResult
+    func attachAndPush<Child: Routing>(_ child: Child, transition: ScreenTransition, on navigator: Navigator) -> StackEntry {
         let entry = child.makeEntry(for: child.initialRoute, transition: navigator.resolved(transition))
         child.attach(to: navigator, anchor: entry)
         navigator.push(entry)
-        if !routes.isEmpty { child.push(routes) }
+        return entry
     }
 
     /// Presents a child flow modally, with a stack of its own. The child is freed once the presentation is dismissed.

@@ -65,11 +65,23 @@ extension Coordinator {
     ) async -> Value? {
         await awaitResult { callback in
             guard let navigator = requireNavigator() else { return nil }
-            let child = makeChild(callback)
-            let entry = child.makeEntry(for: child.initialRoute, transition: navigator.resolved(transition))
-            child.attach(to: navigator, anchor: entry)
-            navigator.push(entry)
-            return (entry, navigator)
+            return (attachAndPush(makeChild(callback), transition: transition, on: navigator), navigator)
+        }
+    }
+
+    /// Pushes a child flow whose concrete type isn't known here, for example one built by a dependency container,
+    /// and waits for it to call back with a value.
+    ///
+    /// ```swift
+    /// let answers = await pushFlow { container.survey(onFinish: $0) }  // returns any Routing
+    /// ```
+    public func pushFlow<Value: Sendable>(
+        transition: ScreenTransition = .automatic,
+        _ makeChild: (Callback<Value>) -> any Routing
+    ) async -> Value? {
+        await awaitResult { callback in
+            guard let navigator = requireNavigator() else { return nil }
+            return (attachAndPush(makeChild(callback), transition: transition, on: navigator), navigator)
         }
     }
 
@@ -84,6 +96,25 @@ extension Coordinator {
         as style: PresentationStyle = .sheet,
         transition: ScreenTransition = .automatic,
         _ makeChild: (Callback<Value>) -> Child
+    ) async -> Value? {
+        await awaitResult { callback in
+            guard let navigator = requireNavigator() else { return nil }
+            let presented = Navigator(root: makeChild(callback), embedsInNavigationStack: style.embedsInNavigationStack)
+            navigator.present(presented, style: style, transition: transition, by: self)
+            return (presented.root, presented)
+        }
+    }
+
+    /// Presents a child flow whose concrete type isn't known here, for example one built by a dependency container,
+    /// and waits for it to call back with a value.
+    ///
+    /// ```swift
+    /// let result = await presentFlow(as: .sheet) { container.settings(onFinish: $0) }  // returns any Routing
+    /// ```
+    public func presentFlow<Value: Sendable>(
+        as style: PresentationStyle = .sheet,
+        transition: ScreenTransition = .automatic,
+        _ makeChild: (Callback<Value>) -> any Routing
     ) async -> Value? {
         await awaitResult { callback in
             guard let navigator = requireNavigator() else { return nil }

@@ -254,6 +254,40 @@ struct ResultTests {
     // MARK: - Helpers
 
     /// Lets the `Task`s above run up to their first suspension point.
+    @Test("Flows built without their concrete type (any Routing, as a dependency container returns) push, present and return values")
+    func typeErasedFlows() async throws {
+        // GIVEN: a factory that hides the child's type
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        let makeChild: (Callback<String>) -> any Routing = { ChildFlowCoordinator(onComplete: $0) }
+
+        // WHEN: pushed without a result
+        home.pushFlow(ChildFlowCoordinator() as any Routing)
+
+        // THEN
+        #expect(navigator.depth == 1)
+        #expect(navigator.topRoute(as: ChildFlowCoordinator.Route.self) == .step(1))
+        navigator.popToRoot()
+
+        // WHEN: presented, then completed
+        let presented = Task { await home.presentFlow(as: .sheet, makeChild) }
+        await settle()
+        try #require(home.presented?.coordinator(as: ChildFlowCoordinator.self)).complete(with: "sheet")
+
+        // THEN
+        #expect(await presented.value == "sheet")
+        #expect(navigator.presentation == nil)
+
+        // WHEN: pushed, then completed
+        let pushed = Task { await home.pushFlow(makeChild) }
+        await settle()
+        try #require(navigator.top.owner as? ChildFlowCoordinator).complete(with: "push")
+
+        // THEN
+        #expect(await pushed.value == "push")
+        #expect(navigator.depth == 0)
+    }
+
     private func settle() async {
         for _ in 0..<5 { await Task.yield() }
     }

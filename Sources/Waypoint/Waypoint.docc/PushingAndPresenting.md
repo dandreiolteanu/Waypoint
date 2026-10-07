@@ -13,7 +13,7 @@ There are two kinds of things to show:
 | --- | --- | --- |
 | Push | ``Routing/push(_:transition:)`` | ``Coordinator/pushFlow(_:transition:then:)`` |
 | Present | ``Routing/present(_:as:transition:)`` | ``Coordinator/presentFlow(_:as:transition:)`` |
-| Await a value | ``Routing/push(transition:_:)``, ``Routing/present(as:transition:_:)`` | ``Coordinator/pushFlow(transition:_:)``, ``Coordinator/presentFlow(as:transition:_:)`` |
+| Await a value | ``Routing/push(transition:_:)``, ``Routing/present(as:transition:_:)`` | ``Coordinator/pushFlow(transition:_:)-(_,(Callback<Value>)->Child)``, ``Coordinator/presentFlow(as:transition:_:)-(_,_,(Callback<Value>)->Child)`` |
 
 ## Pushing
 
@@ -44,6 +44,19 @@ A **presented route** is a single screen, still built by the presenting coordina
 Sheets stack. A flow inside a sheet can present another flow, and so on. Presenting when the same stack (any coordinator in it) is already presenting something *replaces* it. The new presentation waits for the old one's dismissal animation to finish, because SwiftUI drops presentations that start mid-dismissal.
 
 See <doc:SheetsAndDetents> for every presentation option.
+
+### Flows from a dependency container
+
+The flow calls also take a coordinator whose concrete type is hidden (`any Routing`), so a feature can open another feature through a factory without knowing its type:
+
+```swift
+// Somewhere both features can see
+var settings: (Callback<SettingsResult>) -> any Routing = { SettingsCoordinator(onFinish: $0) }
+
+// The feature that opens it
+let result = await presentFlow(as: .sheet) { container.settings($0) }
+pushFlow(container.profile())
+```
 
 ## Coming back
 
