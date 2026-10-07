@@ -11,7 +11,7 @@ extension Routing {
     /// ```
     public func push(_ route: Route, transition: ScreenTransition = .automatic) {
         guard let navigator = requireNavigator() else { return }
-        navigator.push(makeEntry(for: route, transition: transition))
+        navigator.push(makeEntry(for: route, transition: navigator.resolved(transition)))
     }
 
     /// Pushes several routes at once, bottom first. Handy for deep links.
@@ -70,7 +70,7 @@ extension Coordinator {
     /// ```
     public func pushFlow<Child: Routing>(_ child: Child, transition: ScreenTransition = .automatic, then routes: [Child.Route] = []) {
         guard let navigator = requireNavigator() else { return }
-        let entry = child.makeEntry(for: child.initialRoute, transition: transition)
+        let entry = child.makeEntry(for: child.initialRoute, transition: navigator.resolved(transition))
         child.attach(to: navigator, anchor: entry)
         navigator.push(entry)
         if !routes.isEmpty { child.push(routes) }

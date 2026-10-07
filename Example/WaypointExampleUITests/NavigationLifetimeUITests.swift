@@ -30,6 +30,42 @@ final class StackLifetimeUITests: WaypointUITestCase {
         assertReturns(to: baseline)
     }
 
+    /// Pushing the same screen type twice put two zoom sources with the same id in one stack. SwiftUI could then
+    /// morph from the copy on the covered screen, and UIKit crashed: "Cannot morph from a view that is not in the hierarchy".
+    func testSameZoomSourceIdOnTwoScreensInOneStack() {
+        launch()
+        // Tram → Tree → Tram again: both Tram screens now show a "Tree" thumbnail with the same zoom id.
+        tap("feed.photo.5")
+        tap("detail.related.8")
+        tap("detail.related.5")
+        XCTAssertTrue(app.navigationBars["Tram"].waitForExistence(timeout: 5))
+
+        // Into Tree and back, a few times: each zoom must use the thumbnail on the visible Tram screen.
+        for _ in 0..<3 {
+            tap("detail.related.8")
+            XCTAssertTrue(app.navigationBars["Tree"].waitForExistence(timeout: 5), "The app crashed")
+            tapBack()
+            XCTAssertTrue(app.navigationBars["Tram"].waitForExistence(timeout: 5), "The app crashed")
+        }
+        XCTAssertTrue(lifetime.waitForExistence(timeout: 5), "The app crashed")
+    }
+
+    /// Two zoom pushes from one source in the same update (a fast double tap) used to crash UIKit:
+    /// "Cannot morph from a view that is not in the hierarchy".
+    func testTwoZoomPushesInOneUpdateDontCrash() {
+        app.launchArguments = ["-signedIn", "-simulateDoubleTap"]
+        app.launch()
+        tap("feed.photo.5")
+        tap("detail.related.8")
+
+        XCTAssertTrue(app.navigationBars["Tree"].waitForExistence(timeout: 5))
+        XCTAssertTrue(lifetime.waitForExistence(timeout: 5), "The app crashed")
+        tapBack()
+        tapBack()
+        XCTAssertTrue(app.navigationBars["Tram"].waitForExistence(timeout: 5))
+        XCTAssertTrue(lifetime.waitForExistence(timeout: 5), "The app crashed")
+    }
+
     func testReselectingTabPopsToRoot() {
         launch()
         let baseline = settledCounts()

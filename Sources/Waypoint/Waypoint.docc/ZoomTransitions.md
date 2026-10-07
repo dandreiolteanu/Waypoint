@@ -29,7 +29,7 @@ On the way back, the screen shrinks into its source. That includes interactive s
 
 ## Choosing ids
 
-The id only has to match within one stack. When the same item appears in several places on one screen, give each place its own id, or the zoom can come from the wrong one:
+An id only has to be unique on one screen. Waypoint scopes each source to the screen it's on and zooms from the top screen, so the same screen pushed twice (a photo, then a related photo, then the first photo again) can reuse its ids. When the same item appears in several places on one screen, give each place its own id, or the zoom can come from the wrong one:
 
 ```swift
 enum ZoomSource: Hashable {
@@ -46,6 +46,16 @@ push(.photo(photo.id), transition: .zoom(sourceID: ZoomSource.grid(photo.id)))
 Each ``NavigationHost`` provides a namespace to every screen in its stack. Waypoint applies the zoom to the pushed screen, or to the whole presented content (navigation stack included, which the system requires).
 
 The source and the navigation must belong to the same host: the screen that marks the source must be in the same stack as the coordinator that pushes or presents. That's the natural setup, a screen's view model calling its own coordinator, with one exception. A screen shown with ``Routing/present(_:as:transition:)`` lives in the sheet's stack, but navigates through the presenter's coordinator, so a zoom from inside it can't find its source. Present a flow when the sheet needs to zoom.
+
+## When it falls back
+
+Waypoint uses the default animation instead of a zoom when the zoom couldn't run cleanly:
+
+- No view on the top screen is marked with the id, or it's off screen.
+- The top screen is still animating in, for example on a second fast tap. UIKit can't morph from a view that's leaving the window.
+- This stack is covered by a sheet.
+
+In debug builds, Waypoint logs why.
 
 ## Availability
 

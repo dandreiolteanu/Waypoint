@@ -80,5 +80,9 @@ extension FeedCoordinator: PhotoDetailNavigation {
 
     func openRelated(_ related: Photo, from parent: Photo) {
         showPhoto(id: related.id, transition: .zoom(sourceID: ZoomSource.related(parent: parent.id, photo: related.id)))
+        if LaunchOptions.simulatesDoubleTap {
+            // UI tests: two taps whose actions fire in the same update, as a fast double tap can.
+            showPhoto(id: related.id, transition: .zoom(sourceID: ZoomSource.related(parent: parent.id, photo: related.id)))
+        }
     }
 }

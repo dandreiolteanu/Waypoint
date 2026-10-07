@@ -161,6 +161,24 @@ public struct PresentationStyle {
         initialDetent ?? detents.first ?? .large
     }
 
+    /// This style anchored at `sourceID` instead (a popover's id, scoped to the presenting screen).
+    func anchored(at sourceID: AnyHashable) -> PresentationStyle {
+        PresentationStyle(
+            kind: kind,
+            embedsInNavigationStack: embedsInNavigationStack,
+            detents: detents,
+            initialDetent: initialDetent,
+            dragIndicator: dragIndicator,
+            isInteractiveDismissDisabled: isInteractiveDismissDisabled,
+            backgroundInteraction: backgroundInteraction,
+            cornerRadius: cornerRadius,
+            sizing: sizing,
+            popoverSourceID: sourceID,
+            arrowEdge: arrowEdge,
+            compactAdaptation: compactAdaptation
+        )
+    }
+
     /// This style shown as a sheet: what a popover becomes when its anchor isn't on screen.
     var asSheet: PresentationStyle {
         PresentationStyle(

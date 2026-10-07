@@ -23,7 +23,7 @@ The sheet's screen was shown with ``Routing/present(_:as:transition:)``, so it b
 Presenting while another sheet is still animating out waits for that animation. That's deliberate: SwiftUI drops presentations that start mid-dismissal.
 
 **The zoom transition falls back to a slide.**
-The source id and the transition id differ, the source isn't in the same stack as the coordinator that navigates (a screen presented with `present(_:)` is the usual case), or the device runs iOS 17. See <doc:ZoomTransitions>.
+The source id and the transition id differ, the source isn't on the top screen of the stack whose coordinator navigates (a screen presented with `present(_:)` is the usual case), the top screen is still animating in, or the device runs iOS 17. Debug builds log the reason. See <doc:ZoomTransitions>.
 
 **A navigator is freed immediately in a test.**
 Coordinators hold their navigator weakly. Keep a strong reference in the test.
@@ -37,6 +37,7 @@ A Waypoint stack's path holds Waypoint's own entries. Navigate through the coord
 | --- | --- |
 | `NavigationStack` keeps the last popped destination (and its path element) until the next navigation. | The path holds lightweight tokens. A removed screen's view is dropped once it disappears, which releases its view model. |
 | A presentation started during another's dismissal animation is silently dropped. | It's queued until the first one reports it's gone. |
+| A zoom whose source is on a covered screen, or on a screen still animating in, crashes UIKit ("Cannot morph from a view that is not in the hierarchy"). Repeating a screen in one stack repeats its source ids, and SwiftUI may pick the covered copy. | Sources are scoped to their screen and the zoom always starts from the top one. When it isn't settled or has no such source, the navigation uses the default animation. |
 | A presentation started from a sheet that's still animating in is silently dropped (stacking sheets from a deep link). | It's held until that sheet has finished presenting, detected with a view controller's `viewDidAppear`, which fires after the transition. Queued alerts wait the same way. |
 | Navigating right after a screen closes can collide with its animation. | Awaits resume only after every closing screen is off screen. |
 | A `TabView` removed by a root switch can keep its background tabs' content alive (on iOS 27, indefinitely, growing with every sign-out). | Tearing the tabs down makes ``TabHost`` render nothing while still mounted, so SwiftUI dismantles the `TabView` properly. Hosts also hold state weakly, and torn-down trees are empty. |

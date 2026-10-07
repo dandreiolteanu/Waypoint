@@ -23,7 +23,7 @@ extension Routing {
     ) async -> Value? {
         await awaitResult { callback in
             guard let navigator = requireNavigator() else { return nil }
-            let entry = makeEntry(for: makeRoute(callback), transition: transition)
+            let entry = makeEntry(for: makeRoute(callback), transition: navigator.resolved(transition))
             navigator.push(entry)
             return (entry, navigator)
         }
@@ -66,7 +66,7 @@ extension Coordinator {
         await awaitResult { callback in
             guard let navigator = requireNavigator() else { return nil }
             let child = makeChild(callback)
-            let entry = child.makeEntry(for: child.initialRoute, transition: transition)
+            let entry = child.makeEntry(for: child.initialRoute, transition: navigator.resolved(transition))
             child.attach(to: navigator, anchor: entry)
             navigator.push(entry)
             return (entry, navigator)

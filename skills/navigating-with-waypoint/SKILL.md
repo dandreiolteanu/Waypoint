@@ -114,7 +114,7 @@ In a `guard`, put the closure in parentheses: `guard let x = await presentFlow(a
 - **Navigating a navigator that isn't on screen yet is safe**, for example pushing right after `tabs.select(.shop, reset: true)` or right after a root switch. Navigation is state; the host applies it when it appears.
 - **`tearDown()` ends a whole tree.** It runs every coordinator's `didFinish()` and makes awaits return `nil`. It also frees the coordinators, view models and the models they own once your last reference goes.
 - **Split view sidebars:** `List(items, selection: split.selection)` only selects when each row's `id` *is* the selection value (`var id: Self { self }`), or the row has `.tag(item)`. Otherwise taps select nothing, silently.
-- **Zoom and popover ids only need to be unique within one stack** (one `NavigationHost`; each split-view column is its own).
+- **Zoom and popover ids only need to be unique on one screen.** They're scoped to the screen they're on, so the same screen pushed twice can reuse them. A zoom starts from the top screen; if it has no such source, is still animating in, or is under a sheet, the push uses the default animation (debug builds log why).
 - **A nested `enum Tab` shadows SwiftUI's `Tab`** inside its type. Build the `TabView` in a separate top-level view, or write `SwiftUI.Tab`.
 - **`LifetimeTracker` tracks coordinators, navigators and screens automatically.** Register only view models.
 

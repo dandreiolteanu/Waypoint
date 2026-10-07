@@ -64,6 +64,8 @@ enum LaunchOptions {
         return SessionStore(user: User(name: "Ada", email: "ada@example.com", favoriteColor: .indigo, interests: [.travel]))
     }
 
+    static var simulatesDoubleTap: Bool { arguments.contains("-simulateDoubleTap") }
+
     static var showsLifetimeOverlay: Bool {
         #if DEBUG
         !arguments.contains("-hideLifetimeOverlay")

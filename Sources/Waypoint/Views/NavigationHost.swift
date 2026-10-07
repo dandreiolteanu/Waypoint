@@ -93,8 +93,10 @@ private struct ScreenHost: View {
     var body: some View {
         if let view = screen.view {
             view
+                .environment(\.screenScope, ObjectIdentifier(screen))
                 .onAppear { screen.didAppear() }
                 .onDisappear { screen.didDisappear() }
+                .background(PresentationCompletionProbe { screen.didSettle() })
         }
     }
 }

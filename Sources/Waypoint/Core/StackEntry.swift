@@ -157,7 +157,17 @@ final class ScreenContent {
 
     func didDisappear() {
         isVisible = false
+        isSettled = false
         if isRemoved { close() }
+    }
+
+    /// Whether the screen is on screen with its own transition finished. A zoom can only start from a settled screen.
+    @ObservationIgnored private(set) var isSettled = false
+
+    /// The screen's push (or the presentation it's in) finished animating in.
+    func didSettle() {
+        guard !isRemoved else { return }
+        isSettled = true
     }
 
     func remove() {

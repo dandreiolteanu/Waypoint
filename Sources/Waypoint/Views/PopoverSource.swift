@@ -21,16 +21,19 @@ private struct PopoverSourceModifier: ViewModifier {
     let id: AnyHashable
     @Environment(\.navigatorReference) private var reference
     @Environment(\.transitionNamespace) private var namespace
+    @Environment(\.screenScope) private var screen
     @Namespace private var fallbackNamespace
 
     func body(content: Content) -> some View {
         let navigator = reference.navigator
+        // Scoped to this screen, so the same anchor on two screens in one stack can't both present the popover.
+        let key = ScopedSourceID.key(id, in: screen)
         content
-            .popover(item: presentationBinding(navigator, kind: .popover, sourceID: id), arrowEdge: arrowEdge(navigator)) { presentation in
+            .popover(item: presentationBinding(navigator, kind: .popover, sourceID: key), arrowEdge: arrowEdge(navigator)) { presentation in
                 PresentedContent(presentation: presentation, namespace: namespace ?? fallbackNamespace)
             }
-            .onAppear { [weak navigator] in navigator?.registerPopoverSource(id) }
-            .onDisappear { [weak navigator] in navigator?.unregisterPopoverSource(id) }
+            .onAppear { [weak navigator] in navigator?.registerPopoverSource(key) }
+            .onDisappear { [weak navigator] in navigator?.unregisterPopoverSource(key) }
     }
 
     private func arrowEdge(_ navigator: Navigator?) -> Edge {

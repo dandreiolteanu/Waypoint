@@ -44,6 +44,8 @@ public final class Navigator {
     static var hasUserInterface = false
     /// How many on-screen views anchor popovers, by id. A popover whose anchor isn't on screen is shown as a sheet.
     @ObservationIgnored private var popoverSources: [AnyHashable: Int] = [:]
+    /// How many on-screen views are zoom sources, by id.
+    @ObservationIgnored private var zoomSources: [AnyHashable: Int] = [:]
 
     /// A navigator whose root screen is `coordinator`'s ``Routing/initialRoute``. The navigator owns the coordinator from here on.
     ///
@@ -211,7 +213,7 @@ public final class Navigator {
     /// and the new presentation follows once the old one has animated out. SwiftUI drops a presentation started mid-dismissal.
     func present(_ navigator: Navigator, style: PresentationStyle, transition: ScreenTransition, by coordinator: Coordinator? = nil) {
         guard !isTornDown else { return navigator.tearDown() }
-        let newPresentation = Presentation(navigator: navigator, style: resolved(style), transition: transition)
+        let newPresentation = Presentation(navigator: navigator, style: resolved(style), transition: resolved(transition))
         newPresentation.presentedBy = coordinator
         navigator.presenter = self
         if !isReadyToPresent {
@@ -282,14 +284,46 @@ public final class Navigator {
     /// Called from `onDismiss`, after the dismissal animation has finished.
     /// A popover needs its anchor on screen. Without one, it's shown as a sheet rather than not at all.
     private func resolved(_ style: PresentationStyle) -> PresentationStyle {
-        guard style.kind == .popover else { return style }
-        guard let id = style.popoverSourceID, popoverSources[id, default: 0] > 0 else {
+        guard style.kind == .popover, let id = style.popoverSourceID else { return style }
+        let key = sourceKey(id)
+        guard popoverSources[key, default: 0] > 0 else {
             #if DEBUG
-            waypointLog.notice("Waypoint: no view marked .popoverSource(id: \(String(describing: style.popoverSourceID), privacy: .public)) is on screen in this stack; presenting as a sheet.")
+            waypointLog.notice("Waypoint: no view marked .popoverSource(id: \(String(describing: id), privacy: .public)) is on screen in this stack; presenting as a sheet.")
             #endif
             return style.asSheet
         }
-        return style
+        return style.anchored(at: key)
+    }
+
+    /// A source id scoped to the screen on top, where the view that asks to navigate lives. Without a user interface
+    /// (unit tests) ids stay as given.
+    private func sourceKey(_ id: AnyHashable) -> AnyHashable {
+        Navigator.hasUserInterface ? ScopedSourceID.key(id, in: ObjectIdentifier(top.screen)) : id
+    }
+
+    /// A zoom only starts when UIKit can morph from its source: the source is on screen, the screen holding it has
+    /// finished its own transition, and nothing covers it. Otherwise the default animation is used. Starting a zoom
+    /// from a source that's leaving the window (a second tap while the first zoom push is still animating, a source
+    /// scrolled away, or one under a cover) crashes UIKit with "Cannot morph from a view that is not in the hierarchy".
+    func resolved(_ transition: ScreenTransition) -> ScreenTransition {
+        guard Navigator.hasUserInterface, let id = transition.zoomSourceID else { return transition }
+        let key = sourceKey(id)
+        if top.screen.isSettled, presentation == nil, zoomSources[key, default: 0] > 0 {
+            return .zoom(sourceID: key)
+        }
+        #if DEBUG
+        waypointLog.notice("Waypoint: zoom source \(String(describing: id), privacy: .public) isn't settled on screen; using the default transition.")
+        #endif
+        return .automatic
+    }
+
+    func registerZoomSource(_ id: AnyHashable) {
+        zoomSources[id, default: 0] += 1
+    }
+
+    func unregisterZoomSource(_ id: AnyHashable) {
+        let count = zoomSources[id, default: 0] - 1
+        zoomSources[id] = count > 0 ? count : nil
     }
 
     func registerPopoverSource(_ id: AnyHashable) {

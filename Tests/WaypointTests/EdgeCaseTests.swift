@@ -385,6 +385,69 @@ struct EdgeCaseTests {
         #expect(await task.value == false)
     }
 
+    @Test("A zoom only starts from a settled, on-screen source; otherwise the push uses the default animation")
+    func zoomNeedsASettledSource() throws {
+        // GIVEN: a user interface, a settled root screen with a zoom source on it
+        Navigator.hasUserInterface = true
+        defer { Navigator.hasUserInterface = false }
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        navigator.top.screen.didAppear()
+        navigator.top.screen.didSettle()
+        let root = ObjectIdentifier(navigator.top.screen)
+        navigator.registerZoomSource(ScopedSourceID.key(1, in: root))
+
+        // WHEN: tapped once
+        home.push(.detail(1), transition: .zoom(sourceID: 1))
+
+        // THEN: it zooms from the source on the screen that was tapped
+        #expect(navigator.top.transition.zoomSourceID == ScopedSourceID.key(1, in: root))
+
+        // WHEN: tapped again while that push is still animating (the new top hasn't settled)
+        home.push(.detail(1), transition: .zoom(sourceID: 1))
+
+        // THEN: no zoom, so UIKit never morphs from a source that's leaving the window
+        #expect(navigator.top.transition == .automatic)
+    }
+
+    @Test("A zoom from an unknown source, or from under a sheet, falls back to the default animation")
+    func zoomNeedsAVisibleSource() {
+        Navigator.hasUserInterface = true
+        defer { Navigator.hasUserInterface = false }
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        navigator.top.screen.didAppear()
+        navigator.top.screen.didSettle()
+
+        home.push(.detail(1), transition: .zoom(sourceID: "missing"))
+        #expect(navigator.top.transition == .automatic)
+
+        navigator.pop()
+        navigator.registerZoomSource(ScopedSourceID.key("card", in: ObjectIdentifier(navigator.top.screen)))
+        home.present(.detail(2))
+        home.push(.detail(3), transition: .zoom(sourceID: "card"))
+        #expect(navigator.top.transition == .automatic)
+    }
+
+    @Test("The same zoom id on a covered screen doesn't count: the same screen pushed twice can't zoom from the copy underneath")
+    func zoomSourcesAreScopedToTheirScreen() {
+        // GIVEN: Tram → Tree, where Tram (covered, still in the stack) has a source with id "tram"
+        Navigator.hasUserInterface = true
+        defer { Navigator.hasUserInterface = false }
+        let home = TestCoordinator()
+        let navigator = Navigator(root: home)
+        navigator.registerZoomSource(ScopedSourceID.key("tram", in: ObjectIdentifier(navigator.top.screen)))
+        home.push(.detail(1))
+        navigator.top.screen.didAppear()
+        navigator.top.screen.didSettle()
+
+        // WHEN: Tree pushes with the same id, but Tree has no such source of its own
+        home.push(.detail(2), transition: .zoom(sourceID: "tram"))
+
+        // THEN: no zoom, rather than morphing from the covered Tram's view
+        #expect(navigator.top.transition == .automatic)
+    }
+
     private func settle() async {
         for _ in 0..<10 { await Task.yield() }
     }
