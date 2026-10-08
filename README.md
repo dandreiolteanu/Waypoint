@@ -1,6 +1,7 @@
 <p align="center"><img src=".github/banner.png" alt="Waypoint" width="100%"></p>
 
 <p align="center">
+  <a href="https://github.com/dandreiolteanu/Waypoint/tags"><img src="https://img.shields.io/github/v/tag/dandreiolteanu/Waypoint?label=version&sort=semver&color=blue" alt="Latest version"></a>
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
   <img src="https://img.shields.io/badge/iOS-18%2B-0A84FF?logo=apple&logoColor=white" alt="iOS 18+">
   <img src="https://img.shields.io/badge/macOS-15%2B-0A84FF?logo=apple&logoColor=white" alt="macOS 15+">
