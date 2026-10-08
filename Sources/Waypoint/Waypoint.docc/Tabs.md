@@ -34,21 +34,6 @@ TabHost(tabs) { tabs in
 
 Always wrap the `TabView` in ``TabHost``. When the tabs are torn down (``TabNavigator/tearDown()``), `TabHost` empties itself while still on screen, so SwiftUI dismantles the `TabView` properly. Without it, some OS versions keep a removed `TabView`'s background tabs alive after every sign-out. The teardown also releases every tab's navigator, so even your own view holding the tabs is harmless.
 
-On iOS 17, which has no `Tab` API, use `.tabItem` and `.tag` the classic way:
-
-```swift
-TabHost(tabs) { tabs in
-    TabView(selection: tabs.selection) {
-        NavigationHost(tabs[.feed])
-            .tabItem { Label("Feed", systemImage: "house") }
-            .tag(AppTab.feed)
-        NavigationHost(tabs[.profile])
-            .tabItem { Label("Profile", systemImage: "person") }
-            .tag(AppTab.profile)
-    }
-}
-```
-
 For a tab type that isn't `CaseIterable`, list the tabs yourself: ``TabNavigator/init(selected:tabs:popsToRootOnReselect:navigator:)``. ``TabNavigator/selectedTab`` is read-only; change it with ``TabNavigator/select(_:reset:)``, and read a tab's navigator with `tabs[.feed]`.
 
 ## Behavior

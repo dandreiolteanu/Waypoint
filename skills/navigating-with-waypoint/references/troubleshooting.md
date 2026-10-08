@@ -11,7 +11,7 @@
 | Old tabs stay alive after sign-out | Old root not torn down, or `TabView` not wrapped in `TabHost` | `tabs.tearDown()` before replacing the root; always `TabHost` |
 | Sheet appears late after another closes | Intentional: presentations wait for the previous dismissal animation | Nothing to fix |
 | Stacked sheets from a deep link | Handled: each waits for the one below to finish appearing | Present them in order; no delays needed |
-| Zoom falls back to a slide | Ids differ, duplicate ids on one screen, source not on the top screen of the navigating stack, a second tap while the first push animates, a sheet covers the stack, or iOS 17 | Same id both sides, unique per place on a screen; navigate from the source's own coordinator. Read the debug log line starting with "Waypoint:" |
+| Zoom falls back to a slide | Ids differ, duplicate ids on one screen, source not on the top screen of the navigating stack, a second tap while the first push animates, or a sheet covers the stack | Same id both sides, unique per place on a screen; navigate from the source's own coordinator. Read the debug log line starting with "Waypoint:" |
 | Crash "Cannot morph from a view that is not in the hierarchy" | A zoom started from a source on a covered screen or a screen leaving the window (Waypoint before scoped zoom sources, or a hand-written `matchedTransitionSource`) | Update Waypoint; use `.transitionSource(id:)`, not SwiftUI's modifiers, inside Waypoint stacks |
 | Popover shows as a sheet on iPad | No view with `.popoverSource(id:)` on screen in that stack | Mark the anchor in the presenting screen |
 | `.fitted` sheet is tiny | Navigation stack has no ideal size | `embedsInNavigationStack: false` and `.frame(idealWidth:idealHeight:)` |

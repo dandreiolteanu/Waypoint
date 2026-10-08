@@ -189,15 +189,11 @@ struct PresentedContent: View {
 extension View {
     @ViewBuilder
     func sheetSizing(_ sizing: SheetSizing) -> some View {
-        if #available(iOS 18, macOS 15, *) {
-            switch sizing {
-            case .automatic: self
-            case .form: presentationSizing(.form)
-            case .page: presentationSizing(.page)
-            case .fitted: presentationSizing(.fitted)
-            }
-        } else {
-            self
+        switch sizing {
+        case .automatic: self
+        case .form: presentationSizing(.form)
+        case .page: presentationSizing(.page)
+        case .fitted: presentationSizing(.fitted)
         }
     }
 }

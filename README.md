@@ -43,7 +43,7 @@ final class LibraryCoordinator: FlowCoordinator {
 - **Leak-proof by construction.** Navigation state owns coordinators. However the user leaves (pop, swipe-back, swipe-down, dismissal, root switch), the flow is freed. Forty UI flows prove it on iPhone (iOS 18 and 27) and iPad, including repeated sign-out.
 - **Testable without SwiftUI.** Navigation is plain state.
 
-Requires iOS 17 (zoom transitions need iOS 18) and Swift 6. No dependencies.
+Requires iOS 18 or macOS 15, and Swift 6. No dependencies.
 
 ```swift
 .package(url: "https://github.com/dandreiolteanu/Waypoint.git", from: "1.0.0")

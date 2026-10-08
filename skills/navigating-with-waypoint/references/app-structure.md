@@ -119,7 +119,7 @@ struct MainView: View {
 }
 ```
 
-Tapping the selected tab again pops it to root (built in; `popsToRootOnReselect`). iOS 17: use `.tabItem { Label(…) }.tag(Tab.shop)` instead of `Tab(…)`.
+Tapping the selected tab again pops it to root (built in; `popsToRootOnReselect`).
 
 ## Deep links
 

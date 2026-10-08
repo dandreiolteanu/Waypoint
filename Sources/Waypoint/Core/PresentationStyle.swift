@@ -42,7 +42,7 @@ public struct PresentationStyle {
     ///   - isInteractiveDismissDisabled: Stops swipe-to-dismiss. You can change it later through ``Presentation/isInteractiveDismissDisabled``.
     ///   - backgroundInteraction: Lets people use the screen behind the sheet, for example `.enabled(upThrough: .medium)`.
     ///   - cornerRadius: Overrides the sheet's corner radius.
-    ///   - sizing: How big the sheet is on iPad (iOS 18 and later). See ``SheetSizing``.
+    ///   - sizing: How big the sheet is on iPad. See ``SheetSizing``.
     ///   - embedsInNavigationStack: Wraps the content in a `NavigationStack`, so it gets a navigation bar for its title and toolbar.
     ///     Leave it on unless the content draws all of its own chrome.
     public static func sheet(
@@ -195,7 +195,7 @@ public struct PresentationStyle {
     }
 }
 
-/// How big a sheet is where sheets float, as on iPad and Mac. Needs iOS 18; earlier systems use the default size.
+/// How big a sheet is where sheets float, as on iPad and Mac.
 public enum SheetSizing: Sendable {
     /// The system default.
     case automatic

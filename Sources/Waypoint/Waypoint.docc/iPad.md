@@ -66,7 +66,7 @@ present(.tip, as: .popover(from: "tip", compactAdaptation: .popover))           
 
 ## Sheet sizing
 
-Sheets float as cards on iPad. Choose their size with ``SheetSizing`` (iOS 18 and later):
+Sheets float as cards on iPad. Choose their size with ``SheetSizing``:
 
 ```swift
 present(.settings, as: .sheet(sizing: .form))     // the standard form card

@@ -99,7 +99,7 @@ final class Navigator
        isInteractiveDismissDisabled: Bool = false,
        backgroundInteraction: PresentationBackgroundInteraction = .automatic,
        cornerRadius: CGFloat? = nil,
-       sizing: SheetSizing = .automatic,            // .form / .page / .fitted on iPad (iOS 18)
+       sizing: SheetSizing = .automatic,            // .form / .page / .fitted on iPad
        embedsInNavigationStack: Bool = true)
 .fullScreenCover
 .fullScreenCover(isInteractiveDismissDisabled: Bool = false, embedsInNavigationStack: Bool = true)
@@ -118,7 +118,7 @@ A popover whose anchor isn't on screen shows as a sheet. `.fitted` sizing needs 
 
 ```swift
 ScreenTransition.automatic
-ScreenTransition.zoom(sourceID: some Hashable)   // iOS 18; falls back on iOS 17
+ScreenTransition.zoom(sourceID: some Hashable)   // iOS only; falls back on macOS
 
 view.transitionSource(id: some Hashable)         // zoom source, in the same stack as the navigating coordinator
 view.popoverSource(id: some Hashable)            // popover anchor, same rule; works on toolbar buttons

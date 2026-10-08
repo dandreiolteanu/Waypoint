@@ -59,4 +59,4 @@ In debug builds, Waypoint logs why.
 
 ## Availability
 
-Zoom transitions need iOS 18. On iOS 17 and on macOS, ``ScreenTransition/zoom(sourceID:)`` falls back to the default animation, so you can use it unconditionally.
+Zoom transitions are iOS only. On macOS, ``ScreenTransition/zoom(sourceID:)`` falls back to the default animation, so you can use it unconditionally.

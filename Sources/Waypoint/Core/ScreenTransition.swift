@@ -3,8 +3,8 @@ import SwiftUI
 /// How a pushed or presented screen animates in.
 ///
 /// `.zoom(sourceID:)` grows the screen out of the view marked with `.transitionSource(id:)` using the same id, and
-/// shrinks it back on the way out (including interactive swipe-back and swipe-down). It needs iOS 18; earlier systems
-/// and macOS fall back to the default animation.
+/// shrinks it back on the way out (including interactive swipe-back and swipe-down). On macOS it falls back to the
+/// default animation.
 ///
 /// ```swift
 /// // Source, in the screen that pushes:

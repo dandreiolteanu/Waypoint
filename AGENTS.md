@@ -1,6 +1,6 @@
 # Working on Waypoint
 
-Waypoint is a coordinator library for SwiftUI: Swift 6, iOS 17+ and macOS 14+, no dependencies. This file is for changing the library itself. To *use* Waypoint in an app, read the skill in `skills/navigating-with-waypoint/` instead.
+Waypoint is a coordinator library for SwiftUI: Swift 6, iOS 18+ and macOS 15+, no dependencies. This file is for changing the library itself. To *use* Waypoint in an app, read the skill in `skills/navigating-with-waypoint/` instead.
 
 ## Layout
 

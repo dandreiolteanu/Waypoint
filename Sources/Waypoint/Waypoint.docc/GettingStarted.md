@@ -8,7 +8,7 @@ Put a first coordinator on screen, push a screen, and present a sheet.
 .package(url: "https://github.com/dandreiolteanu/Waypoint.git", from: "1.0.0")
 ```
 
-Waypoint needs iOS 17 (zoom transitions need iOS 18) and Swift 6. It has no dependencies.
+Waypoint needs iOS 18 or macOS 15, and Swift 6. It has no dependencies.
 
 ## Write a coordinator
 

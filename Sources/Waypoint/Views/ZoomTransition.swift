@@ -57,7 +57,7 @@ private struct TransitionSourceModifier: ViewModifier {
     @ViewBuilder
     private func source(_ content: Content, key: AnyHashable) -> some View {
         #if os(iOS)
-        if #available(iOS 18, *), let namespace {
+        if let namespace {
             content.matchedTransitionSource(id: key, in: namespace)
         } else {
             content
@@ -74,7 +74,7 @@ private struct ZoomDestinationModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         #if os(iOS)
-        if #available(iOS 18, *), let sourceID {
+        if let sourceID {
             content.navigationTransition(.zoom(sourceID: sourceID, in: namespace))
         } else {
             content

@@ -23,7 +23,7 @@ The sheet's screen was shown with ``Routing/present(_:as:transition:)``, so it b
 Presenting while another sheet is still animating out waits for that animation. That's deliberate: SwiftUI drops presentations that start mid-dismissal.
 
 **The zoom transition falls back to a slide.**
-The source id and the transition id differ, the source isn't on the top screen of the stack whose coordinator navigates (a screen presented with `present(_:)` is the usual case), the top screen is still animating in, or the device runs iOS 17. Debug builds log the reason. See <doc:ZoomTransitions>.
+The source id and the transition id differ, the source isn't on the top screen of the stack whose coordinator navigates (a screen presented with `present(_:)` is the usual case), or the top screen is still animating in. Debug builds log the reason. See <doc:ZoomTransitions>.
 
 **A navigator is freed immediately in a test.**
 Coordinators hold their navigator weakly. Keep a strong reference in the test.
@@ -49,5 +49,5 @@ A Waypoint stack's path holds Waypoint's own entries. Navigate through the coord
 ## Known limitations
 
 - Presenting a sheet while an alert from the same screen is up can be dropped by UIKit. Await the alert first.
-- Zoom transitions need iOS 18, and fall back to the default animation on iOS 17.
+- Zoom transitions are iOS only, and fall back to the default animation on macOS.
 - An awaited screen that SwiftUI keeps without ever reporting it gone resolves after two seconds at most, as a safety net.

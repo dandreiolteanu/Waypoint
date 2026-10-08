@@ -13,7 +13,7 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// Show it with ``TabHost`` and your own `TabView` (any style, the iOS 18 `Tab` API or `.tabItem`), bound to ``selection``.
+/// Show it with ``TabHost`` and your own `TabView` (any style, with `Tab` or `.tabItem`), bound to ``selection``.
 /// Every tab keeps its stack while you switch away. Tapping the selected tab again pops it to its root, as UIKit does.
 @MainActor
 @Observable
