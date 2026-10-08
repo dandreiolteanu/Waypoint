@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/dependencies-none-brightgreen" alt="No dependencies">
   <a href="#running-the-tests"><img src="https://img.shields.io/badge/tests-101%20unit%20%2B%2044%20UI-brightgreen" alt="Tests: 101 unit + 44 UI"></a>
   <a href="#running-the-tests"><img src="https://img.shields.io/badge/coverage-96%25-brightgreen" alt="Coverage 96%"></a>
+  <a href="#zero-leaks-and-the-tests-prove-it"><img src="https://img.shields.io/badge/leaks-0-brightgreen" alt="Zero leaks"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
 </p>
 
@@ -51,14 +52,26 @@ final class LibraryCoordinator: FlowCoordinator {
 - **Await results.** `await push { … }` returns the value, or `nil` if the user left. It resumes exactly once, after the screen has fully left the screen.
 - **Tabs, split views and root switching**, with tap-again-to-pop and teardown of the old tree.
 - **iPad**: `NavigationSplitView` flows, popovers that adapt to sheets on iPhone, sheet sizing, multiple windows.
-- **Leak-proof by construction.** Navigation state owns coordinators. However the user leaves (pop, swipe-back, swipe-down, dismissal, root switch), the flow is freed. 44 UI flows prove it on iPhone (iOS 18 and 27) and iPad, including repeated sign-out.
+- **Leak-proof by construction.** However the user leaves a screen, its coordinator and view model are freed, and [32 UI tests check it](#zero-leaks-and-the-tests-prove-it).
 - **Testable without SwiftUI.** Navigation is plain state.
 
 Requires iOS 18 or macOS 15, and Swift 6. No dependencies.
 
 ```swift
-.package(url: "https://github.com/dandreiolteanu/Waypoint.git", from: "1.0.0")
+.package(url: "https://github.com/dandreiolteanu/Waypoint.git", from: "0.3.0")
 ```
+
+## Zero leaks, and the tests prove it
+
+Navigation code tends to leak in the same places: a screen swiped away halfway, a sheet pulled down, a flow abandoned before it returns its result, a whole tab tree replaced at sign-out. Waypoint is built so none of these can strand an object, and you don't have to take that on trust.
+
+- **Ownership is structural.** Navigation state owns every coordinator. When a screen leaves that state, whatever gesture removed it, its coordinator and view model go with it. There's no `deinit` bookkeeping and no `onDisappear` cleanup to forget.
+- **Everything is counted.** In debug builds `LifetimeTracker` counts live coordinators, navigators, screens and view models. Add your own with `LifetimeTracker.track(self, kind: .viewModel)`. In release builds it compiles away.
+- **32 UI tests fail on a single leak.** Each records the counts, runs a flow, leaves it the way a person would (back button, interactive swipe-back, swipe-down, tapping outside a popover, closing a cover, following a deep link, signing out), and checks that every count returns to where it started. A failure names the type that's still alive.
+- **The hard cases are covered:** awaited results abandoned midway, nested sheets dismissed all at once, zoom transitions undone by swipe-back, and three sign-out and sign-in cycles in a row.
+- **It works around an OS leak.** Some iOS versions keep a removed `TabView`'s background tabs alive. `TabHost` takes the `TabView` apart properly, so signing out frees every tab.
+
+The example app shows the counts live in a debug overlay: walk into any flow, back out, and watch them return. See [Ownership](https://github.com/dandreiolteanu/Waypoint/blob/main/Sources/Waypoint/Waypoint.docc/Ownership.md) for the one rule that keeps it this way.
 
 ## Documentation
 

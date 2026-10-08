@@ -5,7 +5,7 @@ Put a first coordinator on screen, push a screen, and present a sheet.
 ## Add the package
 
 ```swift
-.package(url: "https://github.com/dandreiolteanu/Waypoint.git", from: "1.0.0")
+.package(url: "https://github.com/dandreiolteanu/Waypoint.git", from: "0.3.0")
 ```
 
 Waypoint needs iOS 18 or macOS 15, and Swift 6. It has no dependencies.
