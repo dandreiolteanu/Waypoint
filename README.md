@@ -1,5 +1,16 @@
 <p align="center"><img src=".github/banner.png" alt="Waypoint" width="100%"></p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
+  <img src="https://img.shields.io/badge/iOS-18%2B-0A84FF?logo=apple&logoColor=white" alt="iOS 18+">
+  <img src="https://img.shields.io/badge/macOS-15%2B-0A84FF?logo=apple&logoColor=white" alt="macOS 15+">
+  <img src="https://img.shields.io/badge/SPM-compatible-brightgreen" alt="Swift Package Manager">
+  <img src="https://img.shields.io/badge/dependencies-none-brightgreen" alt="No dependencies">
+  <a href="#running-the-tests"><img src="https://img.shields.io/badge/tests-101%20unit%20%2B%2044%20UI-brightgreen" alt="Tests: 101 unit + 44 UI"></a>
+  <a href="#running-the-tests"><img src="https://img.shields.io/badge/coverage-96%25-brightgreen" alt="Coverage 96%"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+</p>
+
 Coordinators for SwiftUI navigation, in pure SwiftUI (`NavigationStack`, `sheet`, `fullScreenCover`), for Swift 6 and `@Observable`.
 
 ```swift
@@ -40,7 +51,7 @@ final class LibraryCoordinator: FlowCoordinator {
 - **Await results.** `await push { … }` returns the value, or `nil` if the user left. It resumes exactly once, after the screen has fully left the screen.
 - **Tabs, split views and root switching**, with tap-again-to-pop and teardown of the old tree.
 - **iPad**: `NavigationSplitView` flows, popovers that adapt to sheets on iPhone, sheet sizing, multiple windows.
-- **Leak-proof by construction.** Navigation state owns coordinators. However the user leaves (pop, swipe-back, swipe-down, dismissal, root switch), the flow is freed. Forty UI flows prove it on iPhone (iOS 18 and 27) and iPad, including repeated sign-out.
+- **Leak-proof by construction.** Navigation state owns coordinators. However the user leaves (pop, swipe-back, swipe-down, dismissal, root switch), the flow is freed. 44 UI flows prove it on iPhone (iOS 18 and 27) and iPad, including repeated sign-out.
 - **Testable without SwiftUI.** Navigation is plain state.
 
 Requires iOS 18 or macOS 15, and Swift 6. No dependencies.
@@ -194,10 +205,12 @@ A debug overlay shows the number of live coordinators, navigators, screens and v
 swift test   # unit tests, documentation examples and benchmarks, on macOS (about 10s)
 
 xcodebuild test -project Example/WaypointExample.xcodeproj -scheme WaypointExample \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'   # 40 UI flows, about 13 minutes; also runs on iPad
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'   # 44 UI flows, about 13 minutes; also runs on iPad
 ```
 
-Each UI test reads the overlay before and after a flow, and fails with the names of whatever is still alive. Run `xcodegen generate` in `Example/` only if you change `project.yml`.
+Each UI test reads the overlay before and after a flow, and fails with the names of whatever is still alive.
+
+Together the two suites cover 96% of the library's lines: the unit tests cover the navigation logic, and the UI tests cover the SwiftUI layer (`NavigationHost`, `TabHost`, zoom and popover sources) on a real simulator. Run `xcodegen generate` in `Example/` only if you change `project.yml`.
 
 ## Repository
 
