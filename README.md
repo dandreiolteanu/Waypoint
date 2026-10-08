@@ -205,3 +205,7 @@ Each UI test reads the overlay before and after a flow, and fails with the names
 - `Tests/WaypointTests`: Swift Testing suites for stack, presentation, results, tabs, alerts, memory, edge cases and the documentation examples, plus XCTest benchmarks.
 - `Example`: the example app and its UI tests.
 - `skills/navigating-with-waypoint`: the agent skill.
+
+## License
+
+Waypoint is available under the MIT license. See [LICENSE](LICENSE).
