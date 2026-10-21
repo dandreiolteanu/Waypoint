@@ -144,6 +144,10 @@ dismissAll()         // every sheet and cover in this presentation tree
 presented?.selectedDetent = .large
 enclosingPresentation?.isInteractiveDismissDisabled = hasUnsavedChanges
 
+// Back or close, in a view: .root, .pushed or .presented(.sheet)
+@Environment(\.screenPlacement) private var placement
+if placement.isPresented { ToolbarItem(placement: .cancellationAction) { Button("Close", systemImage: "xmark", action: onClose) } }
+
 // Ask
 if await confirm("Sign out?", confirmTitle: "Sign out", role: .destructive) { signOut() }
 

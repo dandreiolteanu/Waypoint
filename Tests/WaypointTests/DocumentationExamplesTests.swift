@@ -4,6 +4,23 @@ import Testing
 
 // The code samples from the documentation, compiled and exercised, so the docs can't drift from the API.
 
+// MARK: - Pushing and Presenting article: back or close
+
+struct CloseIfPresented: ViewModifier {
+    @Environment(\.screenPlacement) private var placement
+    let close: () -> Void
+
+    func body(content: Content) -> some View {
+        content.toolbar {
+            if placement.isPresented {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close", systemImage: "xmark", action: close)
+                }
+            }
+        }
+    }
+}
+
 // MARK: - Overview and Testing article: LibraryCoordinator
 
 struct Book: Identifiable, Hashable {
@@ -205,6 +222,15 @@ struct DocumentationExamplesTests {
         }())
         #expect(made == 0, "The root coordinator is built lazily, when the host first renders")
         _ = host
+    }
+
+    @Test("Pushing and Presenting: CloseIfPresented builds, and screens default to the root placement")
+    func closeIfPresented() {
+        let screen = Text("Settings").modifier(CloseIfPresented(close: {}))
+        _ = screen
+        #expect(EnvironmentValues().screenPlacement == .root)
+        #expect(ScreenPlacement.presented(.sheet).isPresented)
+        #expect(!ScreenPlacement.pushed.isPresented)
     }
 
     private func settle() async {

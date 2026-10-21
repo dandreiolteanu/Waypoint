@@ -35,18 +35,22 @@ final class FeedCoordinator: FlowCoordinator {
             FeedGridView(title: title, photos: photos, onSelect: { photo in
                 self.showPhoto(id: photo.id, transition: .zoom(sourceID: ZoomSource.grid(photo.id)))
             })
+            .placementProbe("grid")
         case let .photo(id):
             if let photo = PhotoLibrary.photo(id: id) {
                 PhotoDetailView(viewModel: PhotoDetailViewModel(photo: photo, navigation: self))
+                    .placementProbe("detail")
             } else {
                 ContentUnavailableView("No photo \(id)", systemImage: "photo.badge.exclamationmark")
             }
         case let .viewer(id):
             if let photo = PhotoLibrary.photo(id: id) {
                 PhotoViewer(photo: photo, onClose: { self.dismissPresented() })
+                    .placementProbe("viewer")
             }
         case let .comments(id):
             CommentsView(photoID: id, onClose: { self.dismissPresented() })
+                .placementProbe("comments")
         }
     }
 

@@ -61,13 +61,16 @@ public struct NavigationHost: View {
                 set: { [weak navigator] in navigator?.setPath(tokens: $0) }
             )) {
                 ScreenHost(screen: navigator.root.screen)
+                    .environment(\.screenPlacement, navigator.rootPlacement)
                     .navigationDestination(for: EntryToken.self) { token in
                         ScreenHost(screen: token.screen)
+                            .environment(\.screenPlacement, .pushed)
                             .zoomTransition(sourceID: token.transition.zoomSourceID, in: namespace)
                     }
             }
         } else {
             ScreenHost(screen: navigator.root.screen)
+                .environment(\.screenPlacement, navigator.rootPlacement)
         }
     }
 }

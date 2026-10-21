@@ -77,6 +77,29 @@ In a pushed flow, ``Coordinator/pop()`` pops the top screen whoever owns it, and
 
 Users leave on their own too: the back button, swipe-back, swipe-down, and the long-press back menu. SwiftUI's `@Environment(\.dismiss)` works as well. Waypoint reads all of these from SwiftUI's own bindings, so the state, the coordinators' lifetimes and any awaits stay correct whichever way the user leaves.
 
+## Back or close
+
+A screen that can be pushed or presented needs its own close button only when it's presented: a pushed screen has the system back button. Read ``ScreenPlacement`` from the environment instead of passing a flag through the coordinator. ``NavigationHost`` sets it on every screen it shows: ``ScreenPlacement/root`` for the first screen of a stack nobody presented, ``ScreenPlacement/pushed`` for everything pushed on top, and ``ScreenPlacement/presented(_:)`` for the first screen of a sheet, cover or popover. Its ``PresentationKind`` is what's actually shown, so a popover with no anchor on screen reports a sheet.
+
+```swift
+struct CloseIfPresented: ViewModifier {
+    @Environment(\.screenPlacement) private var placement
+    let close: () -> Void
+
+    func body(content: Content) -> some View {
+        content.toolbar {
+            if placement.isPresented {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close", systemImage: "xmark", action: close)
+                }
+            }
+        }
+    }
+}
+```
+
+The button still goes through the view model to the coordinator, which calls ``Coordinator/finish()``. SwiftUI's own `isPresented` and `dismiss` can't help here: both treat a pushed screen like a presented one.
+
 ## Reading the state
 
 ``Routing/routes`` lists this coordinator's routes in its stack, bottom first. ``Coordinator/presented`` is what the stack is presenting (``Presentation/isSheet`` tells a sheet from a cover), ``Navigator/topRoute(as:)`` is what's on top, and ``Navigator/depth`` counts the pushed screens. ``Coordinator/navigator`` reaches the underlying ``Navigator``, for ``Navigator/pop(count:)`` or ``Navigator/reset()``. These are mostly for tests (see <doc:Testing>), and occasionally for logic such as "don't push the same recipe twice".
