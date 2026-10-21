@@ -59,7 +59,7 @@ final class LibraryCoordinator: FlowCoordinator {
 Requires iOS 18 or macOS 15, and Swift 6. No dependencies.
 
 ```swift
-.package(url: "https://github.com/dandreiolteanu/Waypoint.git", from: "0.3.0")
+.package(url: "https://github.com/dandreiolteanu/Waypoint.git", from: "0.4.0")
 ```
 
 ## Zero leaks, and the tests prove it
