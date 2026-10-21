@@ -59,3 +59,35 @@ struct CloseButton: ToolbarContent {
         }
     }
 }
+
+/// Publishes the screen's ``ScreenPlacement`` for UI tests: an element named `placement.<screen>` whose value is the placement.
+struct PlacementProbe: ViewModifier {
+    @Environment(\.screenPlacement) private var placement
+    let screen: String
+
+    func body(content: Content) -> some View {
+        content.overlay(alignment: .topLeading) {
+            Color.clear
+                .frame(width: 1, height: 1)
+                .accessibilityElement()
+                .accessibilityIdentifier("placement.\(screen)")
+                .accessibilityValue(value)
+        }
+    }
+
+    private var value: String {
+        switch placement {
+        case .root: "root"
+        case .pushed: "pushed"
+        case .presented(.sheet): "presented.sheet"
+        case .presented(.fullScreenCover): "presented.fullScreenCover"
+        case .presented(.popover): "presented.popover"
+        }
+    }
+}
+
+extension View {
+    func placementProbe(_ screen: String) -> some View {
+        modifier(PlacementProbe(screen: screen))
+    }
+}

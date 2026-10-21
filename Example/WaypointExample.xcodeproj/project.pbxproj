@@ -13,6 +13,7 @@
 		37C3CA57E459A84A0CBF903B /* DeepLinkAndiPadUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F2FABE6DD3F09ABD13C57A /* DeepLinkAndiPadUITests.swift */; };
 		3F1D3D4E14918956D9E32004 /* ProfileCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1CD8D95E95548ACE3D444A /* ProfileCoordinator.swift */; };
 		4267620926974047ABC6BFFF /* LabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F59202D9E2F22BC0CC16CA /* LabView.swift */; };
+		43F3B0A5186A836205A9E246 /* ScreenPlacementUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E68DBB4CE88D7BBF367420BB /* ScreenPlacementUITests.swift */; };
 		4E34AF6DB6BA5812DC55B181 /* AuthViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58766621A130464BBA720877 /* AuthViews.swift */; };
 		6125582B7C2320DA772845A9 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9D7926B6E31E52561A623AB /* SessionStore.swift */; };
 		85CAC28C05DA8B12BFCE01DF /* Waypoint in Frameworks */ = {isa = PBXBuildFile; productRef = 9D75F4EECA24DCAE93D1F462 /* Waypoint */; };
@@ -70,6 +71,7 @@
 		D8B93AB518663DA4B8E68F80 /* DeepLinksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinksView.swift; sourceTree = "<group>"; };
 		D9D7926B6E31E52561A623AB /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		DBD9E949C60B9A27B33C004E /* RepeatedRootSwitchUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatedRootSwitchUITests.swift; sourceTree = "<group>"; };
+		E68DBB4CE88D7BBF367420BB /* ScreenPlacementUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenPlacementUITests.swift; sourceTree = "<group>"; };
 		F5D779832B91CB9D978D3709 /* ExploreCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreCoordinator.swift; sourceTree = "<group>"; };
 		F6EE29EE25E5814693467EDA /* PresentationDemos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationDemos.swift; sourceTree = "<group>"; };
 		F8996ED05C390D1237D7CF3A /* LifetimeOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifetimeOverlay.swift; sourceTree = "<group>"; };
@@ -160,6 +162,7 @@
 				30F2FABE6DD3F09ABD13C57A /* DeepLinkAndiPadUITests.swift */,
 				233337B3C57D2FD7655BBB76 /* NavigationLifetimeUITests.swift */,
 				DBD9E949C60B9A27B33C004E /* RepeatedRootSwitchUITests.swift */,
+				E68DBB4CE88D7BBF367420BB /* ScreenPlacementUITests.swift */,
 				AA07852B2A753045A1C9BD6F /* Support.swift */,
 			);
 			path = WaypointExampleUITests;
@@ -313,6 +316,7 @@
 				37C3CA57E459A84A0CBF903B /* DeepLinkAndiPadUITests.swift in Sources */,
 				13F82FFF4FA26A3CB44D8DD1 /* NavigationLifetimeUITests.swift in Sources */,
 				8F482549F6FD780E0E48B0AE /* RepeatedRootSwitchUITests.swift in Sources */,
+				43F3B0A5186A836205A9E246 /* ScreenPlacementUITests.swift in Sources */,
 				A3E89FE958FB942A1D50C79F /* Support.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

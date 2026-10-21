@@ -87,6 +87,13 @@ final class Navigator
     func pop(count: Int = 1), popToRoot(), reset(), dismissPresentation(), dismissAll(), tearDown()
 ```
 
+```swift
+// In a view: how this screen got on screen, set by NavigationHost
+@Environment(\.screenPlacement) var placement   // .root | .pushed | .presented(PresentationKind)
+placement.isPresented                            // the first screen of a sheet, cover or popover: show a close button
+enum PresentationKind { case sheet, fullScreenCover, popover }   // what's actually shown
+```
+
 `reset()` dismisses sheets and alerts and pops to root. `tearDown()` ends the whole tree: awaits return nil, every `didFinish()` runs.
 
 ## Presentation styles

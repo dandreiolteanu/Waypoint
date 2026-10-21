@@ -116,6 +116,7 @@ In a `guard`, put the closure in parentheses: `guard let x = await presentFlow(a
 - **Split view sidebars:** `List(items, selection: split.selection)` only selects when each row's `id` *is* the selection value (`var id: Self { self }`), or the row has `.tag(item)`. Otherwise taps select nothing, silently.
 - **Zoom and popover ids only need to be unique on one screen.** They're scoped to the screen they're on, so the same screen pushed twice can reuse them. A zoom starts from the top screen; if it has no such source, is still animating in, or is under a sheet, the push uses the default animation (debug builds log why).
 - **A nested `enum Tab` shadows SwiftUI's `Tab`** inside its type. Build the `TabView` in a separate top-level view, or write `SwiftUI.Tab`.
+- **Back or close:** read `@Environment(\.screenPlacement)` in the view. Show a close button only when `placement.isPresented`; a pushed screen keeps the system back button. The button calls the view model, which asks the coordinator to `finish()`. Don't pass an `isModal` flag through view data, and don't use SwiftUI's `isPresented` or `dismiss` for this: both treat a pushed screen like a presented one.
 - **`LifetimeTracker` tracks coordinators, navigators and screens automatically.** Register only view models.
 
 ## Where to look

@@ -67,6 +67,8 @@ What makes it different:
 - ``PresentationStyle``
 - ``Presentation``
 - ``ScreenTransition``
+- ``ScreenPlacement``
+- ``PresentationKind``
 
 ### Data and results
 

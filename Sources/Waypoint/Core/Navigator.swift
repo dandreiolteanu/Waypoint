@@ -30,6 +30,8 @@ public final class Navigator {
     private(set) var alertRequest: AlertRequest?
     /// The navigator that presented this one, if any.
     @ObservationIgnored private(set) weak var presenter: Navigator?
+    /// How this navigator is shown, if something presented it.
+    @ObservationIgnored private(set) var presentedKind: PresentationKind?
     let embedsInNavigationStack: Bool
 
     /// A presentation waiting for the current one to finish animating out.
@@ -207,6 +209,11 @@ public final class Navigator {
         }
     }
 
+    /// The placement of this navigator's root screen: ``ScreenPlacement/presented(_:)`` if something presented it.
+    var rootPlacement: ScreenPlacement {
+        presentedKind.map(ScreenPlacement.presented) ?? .root
+    }
+
     // MARK: - Presentation
 
     /// Presents `navigator` modally. If something is already presented, it's dismissed first,
@@ -216,6 +223,7 @@ public final class Navigator {
         let newPresentation = Presentation(navigator: navigator, style: resolved(style), transition: resolved(transition))
         newPresentation.presentedBy = coordinator
         navigator.presenter = self
+        navigator.presentedKind = PresentationKind(newPresentation.style.resolvedKind)
         if !isReadyToPresent {
             // This navigator's own sheet is still on its way in. UIKit drops a presentation from a controller that
             // isn't in the window yet, so it waits until that sheet has appeared (several stacked at once, by a deep link).
